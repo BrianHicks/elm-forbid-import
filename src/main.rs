@@ -14,8 +14,8 @@ struct Options {
 
     /// The file where we'll store configuration about forbidden imports
     /// and todos.
-    #[clap(short, long, default_value = "forbidden-imports.toml")]
-    config: PathBuf,
+    #[clap(short('c'), long("config"), default_value = "forbidden-imports.toml")]
+    config_path: PathBuf,
 
     #[clap(subcommand)]
     mode: Mode,
@@ -52,19 +52,24 @@ fn main() {
     let opts = Options::parse();
     println!("{:#?}", opts);
 
-    let mut store = Store::from_file_or_empty(opts.config);
+    let mut store = Store::from_file_or_empty(&opts.config_path);
+    println!("{:#?}", store);
 
-    match opts.mode {
+    let result = match opts.mode {
         Mode::Forbid { name, hint } => {
             store.forbid(name, hint);
+            store.write(&opts.config_path)
         }
 
         _ => {
             process::exit(1);
         }
-    }
+    };
 
-    println!("{:#?}", store);
+    if let Err(err) = result {
+        eprintln!("There was a problem: {:#?}", err);
+        process::exit(1);
+    };
 
     let _parser = get_parser();
 }

@@ -11,9 +11,10 @@ stdenv.mkDerivation {
     git
 
     # Rust
-    rustc
     cargo
-    rustPackages.rustfmt
+    cargo-watch
     rustPackages.clippy
+    rustPackages.rustfmt
+    rustc
   ];
 }

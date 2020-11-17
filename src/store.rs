@@ -21,7 +21,7 @@ struct ForbiddenImport {
     hint: Option<String>,
 
     #[serde(default)]
-    usages: Vec<PathBuf>,
+    usages: BTreeSet<PathBuf>,
 }
 
 impl Store {
@@ -49,7 +49,7 @@ impl Store {
                 name,
                 ForbiddenImport {
                     hint,
-                    usages: Vec::new(),
+                    usages: BTreeSet::new(),
                 },
             );
         };

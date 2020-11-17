@@ -94,13 +94,24 @@ fn run(opts: Options) -> Result<i32> {
 
         Mode::Check => {
             let results = store.check(opts.root)?;
+            let all_in_config = results.iter().all(|item| item.error_is_in_config());
+
+            if !all_in_config {
+                println!("I found some forbidden imports!\n")
+            }
+
             for result in &results {
                 println!("{}", result);
             }
 
-            if !results.is_empty() {
+            if all_in_config {
                 println!(
-                    "\nFollow the advice above, or run me with `update` to get rid of this error."
+                    "\nIt looks like you removed some forbidden imports. Good job! To update the config\nand remove this error, just run me with the `update` command!"
+                );
+                Ok(1)
+            } else if !results.is_empty() {
+                println!(
+                    "\nIf these are too much to handle right now (or you intended to import a forbidden\nmodule), please run me with the `update` command!"
                 );
                 Ok(1)
             } else {

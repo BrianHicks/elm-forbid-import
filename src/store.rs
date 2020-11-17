@@ -71,8 +71,9 @@ impl Store {
         let imports_to_files = self.scan(root)?;
 
         for (import, existing) in self.forbidden.iter_mut() {
-            if let Some(new_usages) = imports_to_files.get(import) {
-                existing.usages = new_usages.to_owned();
+            existing.usages = match imports_to_files.get(import) {
+                Some(new_usages) => new_usages.to_owned(),
+                None => BTreeSet::new(),
             }
         }
 
@@ -97,7 +98,7 @@ impl Store {
                     out.push(CheckResult {
                         file: file.to_path_buf(),
                         import: import.to_string(),
-                        error_location: ErrorLocation::InForbiddenImportsConfig,
+                        error_location: ErrorLocation::InConfig,
                     })
                 }
             }
@@ -165,10 +166,16 @@ pub struct CheckResult<'a> {
     error_location: ErrorLocation<'a>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 enum ErrorLocation<'a> {
     InElmSource(Option<&'a String>),
-    InForbiddenImportsConfig,
+    InConfig,
+}
+
+impl CheckResult<'_> {
+    pub fn error_is_in_config(&self) -> bool {
+        self.error_location == ErrorLocation::InConfig
+    }
 }
 
 impl Display for CheckResult<'_> {
@@ -187,7 +194,7 @@ impl Display for CheckResult<'_> {
                     hint_string,
                 )
             }
-            ErrorLocation::InForbiddenImportsConfig => write!(
+            ErrorLocation::InConfig => write!(
                 f,
                 "{} used to import {}, but no longer!",
                 self.file.to_str().unwrap_or("<unprintable file path>"),

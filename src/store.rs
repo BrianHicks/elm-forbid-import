@@ -16,6 +16,9 @@ pub struct Store {
 #[derive(Debug, Deserialize, Serialize)]
 struct ForbiddenImport {
     hint: Option<String>,
+
+    #[serde(default)]
+    usages: Vec<PathBuf>,
 }
 
 impl Store {
@@ -36,7 +39,17 @@ impl Store {
     }
 
     pub fn forbid(&mut self, name: String, hint: Option<String>) {
-        self.forbidden.insert(name, ForbiddenImport { hint });
+        if let Some(value) = self.forbidden.get_mut(&name) {
+            value.hint = hint
+        } else {
+            self.forbidden.insert(
+                name,
+                ForbiddenImport {
+                    hint,
+                    usages: Vec::new(),
+                },
+            );
+        };
     }
 
     pub fn unforbid(&mut self, name: String) {

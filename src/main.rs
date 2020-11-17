@@ -1,6 +1,9 @@
 use clap::Clap;
 use std::path::PathBuf;
+use std::process;
 use tree_sitter;
+mod store;
+use store::Store;
 
 #[derive(Debug, Clap)]
 struct Options {
@@ -48,6 +51,20 @@ enum Mode {
 fn main() {
     let opts = Options::parse();
     println!("{:#?}", opts);
+
+    let mut store = Store::from_file_or_empty(opts.config);
+
+    match opts.mode {
+        Mode::Forbid { name, hint } => {
+            store.forbid(name, hint);
+        }
+
+        _ => {
+            process::exit(1);
+        }
+    }
+
+    println!("{:#?}", store);
 
     let _parser = get_parser();
 }

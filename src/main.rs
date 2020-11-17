@@ -1,3 +1,4 @@
+use anyhow::{anyhow, Result};
 use clap::Clap;
 use std::path::PathBuf;
 use std::process;
@@ -57,6 +58,13 @@ enum Mode {
 fn main() {
     let opts = Options::parse();
 
+    if let Err(err) = run(opts) {
+        eprintln!("There was a problem: {:#?}", err);
+        process::exit(1);
+    };
+}
+
+fn run(opts: Options) -> Result<()> {
     let mut store = match Store::from_file_or_empty(&opts.config_path) {
         Ok(s) => s,
         Err(err) => {
@@ -65,7 +73,7 @@ fn main() {
         }
     };
 
-    let result = match opts.mode {
+    match opts.mode {
         Mode::Forbid { name, hint } => {
             store.forbid(name, hint);
             store.write(&opts.config_path)
@@ -76,16 +84,14 @@ fn main() {
             store.write(&opts.config_path)
         }
 
-        Mode::Update => store.update(opts.root),
+        Mode::Update => {
+            store.update(opts.root)?;
+            store.write(&opts.config_path)
+        }
 
         _ => {
             println!("{:#?}", opts);
-            process::exit(1);
+            Err(anyhow!("{:?} isn't implemented yet!", opts.mode))
         }
-    };
-
-    if let Err(err) = result {
-        eprintln!("There was a problem: {:#?}", err);
-        process::exit(1);
-    };
+    }
 }

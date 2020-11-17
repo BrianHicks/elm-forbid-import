@@ -1,6 +1,7 @@
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
+use std::fmt::{self, Display};
 use std::fs;
 use std::io;
 use std::path::PathBuf;
@@ -78,6 +79,24 @@ impl Store {
         Ok(())
     }
 
+    pub fn check(&mut self, root: PathBuf) -> Result<Vec<CheckResult>> {
+        let imports_to_files = self.scan(root)?;
+        let mut out = Vec::new();
+
+        for (import, existing) in self.forbidden.iter() {
+            if let Some(new_usages) = imports_to_files.get(import) {
+                for file in new_usages.difference(&existing.usages) {
+                    out.push(CheckResult {
+                        file: file.to_path_buf(),
+                        import: import.to_string(),
+                    });
+                }
+            }
+        }
+
+        Ok(out)
+    }
+
     pub fn scan(&mut self, root: PathBuf) -> Result<BTreeMap<String, BTreeSet<PathBuf>>> {
         let types = ignore::types::TypesBuilder::new()
             .add_defaults()
@@ -127,6 +146,18 @@ impl Store {
         }
 
         Ok(out)
+    }
+}
+
+#[derive(Debug)]
+pub struct CheckResult {
+    file: PathBuf,
+    import: String,
+}
+
+impl Display for CheckResult {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "`{}` in {:?}", self.import, self.file)
     }
 }
 

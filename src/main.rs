@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use clap::Clap;
 use std::path::PathBuf;
 use std::process;
@@ -46,22 +46,22 @@ enum Mode {
     Update,
 
     /// Check what imports still need to be cleaned up
-    Check {
-        /// Which names, if any, to specifically check up on
-        names: Vec<String>,
-    },
+    Check,
 }
 
 fn main() {
     let opts = Options::parse();
 
-    if let Err(err) = run(opts) {
-        eprintln!("There was a problem: {:#?}", err);
-        process::exit(1);
-    };
+    match run(opts) {
+        Ok(exit_code) => process::exit(exit_code),
+        Err(err) => {
+            eprintln!("{:#?}", err);
+            process::exit(1);
+        }
+    }
 }
 
-fn run(opts: Options) -> Result<()> {
+fn run(opts: Options) -> Result<i32> {
     let mut store = match Store::from_file_or_empty(&opts.config_path) {
         Ok(s) => s,
         Err(err) => {
@@ -73,22 +73,39 @@ fn run(opts: Options) -> Result<()> {
     match opts.mode {
         Mode::Forbid { name, hint } => {
             store.forbid(name, hint);
-            store.write(&opts.config_path)
+            store.write(&opts.config_path)?;
+
+            Ok(0)
         }
 
         Mode::Unforbid { name } => {
             store.unforbid(name);
-            store.write(&opts.config_path)
+            store.write(&opts.config_path)?;
+
+            Ok(0)
         }
 
         Mode::Update => {
             store.update(opts.root)?;
-            store.write(&opts.config_path)
+            store.write(&opts.config_path)?;
+
+            Ok(0)
         }
 
-        _ => {
-            println!("{:#?}", opts);
-            Err(anyhow!("{:?} isn't implemented yet!", opts.mode))
+        Mode::Check => {
+            let results = store.check(opts.root)?;
+            for result in &results {
+                println!("{}", result);
+            }
+
+            if !results.is_empty() {
+                println!(
+                    "\nFollow the advice above, or run me with `update` to get rid of this error."
+                );
+                Ok(1)
+            } else {
+                Ok(0)
+            }
         }
     }
 }

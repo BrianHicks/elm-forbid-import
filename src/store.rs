@@ -89,7 +89,16 @@ impl Store {
                     out.push(CheckResult {
                         file: file.to_path_buf(),
                         import: import.to_string(),
+                        error_location: ErrorLocation::InElmSource,
                     });
+                }
+
+                for file in existing.usages.difference(new_usages) {
+                    out.push(CheckResult {
+                        file: file.to_path_buf(),
+                        import: import.to_string(),
+                        error_location: ErrorLocation::InForbiddenImportsConfig,
+                    })
                 }
             }
         }
@@ -153,11 +162,31 @@ impl Store {
 pub struct CheckResult {
     file: PathBuf,
     import: String,
+    error_location: ErrorLocation,
+}
+
+#[derive(Debug)]
+enum ErrorLocation {
+    InElmSource,
+    InForbiddenImportsConfig,
 }
 
 impl Display for CheckResult {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "`{}` in {:?}", self.import, self.file)
+        match self.error_location {
+            ErrorLocation::InElmSource => write!(
+                f,
+                "{} imports {}",
+                self.file.to_str().unwrap_or("<unprintable file path>"),
+                self.import,
+            ),
+            ErrorLocation::InForbiddenImportsConfig => write!(
+                f,
+                "{} used to import {}, but no longer!",
+                self.file.to_str().unwrap_or("<unprintable file path>"),
+                self.import,
+            ),
+        }
     }
 }
 

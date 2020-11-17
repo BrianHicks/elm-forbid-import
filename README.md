@@ -7,7 +7,7 @@ Forbid imports across an entire Elm project.
 This tool is based on the realization that we often *intend* to deprecate some import (say, to upgrade `Regex` to `Parser` or `Html` to `Html.Styled`) but you can't do it *now*, or even *completely*.
 To help, we keep a list of modules you're trying to remove from your project and a list of places where they're still used.
 
-Then you can stick a `elm-forbid-import check` line into your CI config to get reminders to not add any new instances, and to regenerate the list when you remove old ones.
+Then you can stick a line that says `elm-forbid-import check` line into your CI config to get reminders to not add any new instances, and to regenerate the list when you remove old ones.
 
 So, let's get started!
 To forbid an import (say, `Regex`), run:
@@ -18,25 +18,15 @@ $ elm-forbid-import forbid Regex
 
 Now `Regex` is forbidden in your project!
 
-Or, well... it's almost forbidden.
-Like I said above, it gets added to a list and the project is re-scanned for instances of `Regex`.
-
-Now see where you need to work on:
+You see where you need to work on:
 
 ```
-$ elm-forbid-import todo Regex
+$ elm-forbid-import check Regex
 ```
 
 ... and get to work!
 
-Once you've removed an import, check in on how the project is doing:
-
-```
-$ elm-forbid-import check
-```
-
-It should tell you that you've removed an import and need to regenerate the config.
-You can do that by running:
+When you're done, or can't remove any more, update the list of usages:
 
 ```
 $ elm-forbid-import update

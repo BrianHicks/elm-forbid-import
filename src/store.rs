@@ -90,7 +90,9 @@ impl Store {
                     out.push(CheckResult {
                         file: file.to_path_buf(),
                         import: import.to_string(),
-                        error_location: ErrorLocation::InElmSource(existing.hint.as_ref()),
+                        error_location: ErrorLocation::InElmSource {
+                            hint: existing.hint.as_ref(),
+                        },
                     });
                 }
 
@@ -159,16 +161,17 @@ impl Store {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct CheckResult<'a> {
     file: PathBuf,
     import: String,
     error_location: ErrorLocation<'a>,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
 enum ErrorLocation<'a> {
-    InElmSource(Option<&'a String>),
+    InElmSource { hint: Option<&'a String> },
     InConfig,
 }
 
@@ -181,9 +184,9 @@ impl CheckResult<'_> {
 impl Display for CheckResult<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.error_location {
-            ErrorLocation::InElmSource(maybe_hint) => {
-                let hint_string = match maybe_hint {
-                    Some(hint) => format!(" ({})", hint),
+            ErrorLocation::InElmSource { hint } => {
+                let hint_string = match hint {
+                    Some(an_actual_hint) => format!(" ({})", an_actual_hint),
                     None => String::new(),
                 };
                 write!(

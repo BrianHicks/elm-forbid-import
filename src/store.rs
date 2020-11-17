@@ -1,6 +1,6 @@
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::fs;
 use std::io;
 use std::path::PathBuf;
@@ -10,7 +10,7 @@ static AUTOGEN_HEADER: &str = "# WARNING: this file is managed with `elm-forbid-
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Store {
-    forbidden: HashMap<String, ForbiddenImport>,
+    forbidden: BTreeMap<String, ForbiddenImport>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -28,7 +28,7 @@ impl Store {
 
             Err(err) => match err.kind() {
                 io::ErrorKind::NotFound => Ok(Store {
-                    forbidden: HashMap::new(),
+                    forbidden: BTreeMap::new(),
                 }),
                 _ => Err(anyhow!(err)),
             },

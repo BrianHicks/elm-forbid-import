@@ -5,6 +5,8 @@ use std::fs;
 use std::path::PathBuf;
 use toml;
 
+static AUTOGEN_HEADER: &str = "# WARNING: this file is managed with `elm-forbid-imports`. Manual edits will\n# be overwritten!\n\n";
+
 #[derive(Debug, Serialize)]
 pub struct Store {
     forbidden: HashMap<String, ForbiddenImport>,
@@ -28,7 +30,7 @@ impl Store {
 
     pub fn write(&self, path: &PathBuf) -> Result<()> {
         let serialized = toml::to_string(self)?;
-        fs::write(path, serialized)?;
+        fs::write(path, String::from(AUTOGEN_HEADER) + &serialized)?;
 
         Ok(())
     }

@@ -89,7 +89,7 @@ impl Store {
                     out.push(CheckResult {
                         file: file.to_path_buf(),
                         import: import.to_string(),
-                        error_location: ErrorLocation::InElmSource,
+                        error_location: ErrorLocation::InElmSource(existing.hint.as_ref()),
                     });
                 }
 
@@ -159,27 +159,34 @@ impl Store {
 }
 
 #[derive(Debug)]
-pub struct CheckResult {
+pub struct CheckResult<'a> {
     file: PathBuf,
     import: String,
-    error_location: ErrorLocation,
+    error_location: ErrorLocation<'a>,
 }
 
 #[derive(Debug)]
-enum ErrorLocation {
-    InElmSource,
+enum ErrorLocation<'a> {
+    InElmSource(Option<&'a String>),
     InForbiddenImportsConfig,
 }
 
-impl Display for CheckResult {
+impl Display for CheckResult<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.error_location {
-            ErrorLocation::InElmSource => write!(
-                f,
-                "{} imports {}",
-                self.file.to_str().unwrap_or("<unprintable file path>"),
-                self.import,
-            ),
+            ErrorLocation::InElmSource(maybe_hint) => {
+                let hint_string = match maybe_hint {
+                    Some(hint) => format!(" ({})", hint),
+                    None => String::new(),
+                };
+                write!(
+                    f,
+                    "{} imports {}{}",
+                    self.file.to_str().unwrap_or("<unprintable file path>"),
+                    self.import,
+                    hint_string,
+                )
+            }
             ErrorLocation::InForbiddenImportsConfig => write!(
                 f,
                 "{} used to import {}, but no longer!",

@@ -1,7 +1,6 @@
 use clap::Clap;
 use std::path::PathBuf;
 use std::process;
-use tree_sitter;
 mod store;
 use store::Store;
 
@@ -76,6 +75,8 @@ fn main() {
             store.write(&opts.config_path)
         }
 
+        Mode::Update => store.update(opts.root),
+
         _ => {
             println!("{:#?}", opts);
             process::exit(1);
@@ -86,21 +87,4 @@ fn main() {
         eprintln!("There was a problem: {:#?}", err);
         process::exit(1);
     };
-
-    let _parser = get_parser();
-}
-
-// tree sitter
-
-extern "C" {
-    fn tree_sitter_elm() -> tree_sitter::Language;
-}
-
-fn get_parser() -> Result<tree_sitter::Parser, tree_sitter::LanguageError> {
-    let mut parser = tree_sitter::Parser::new();
-
-    let elm = unsafe { tree_sitter_elm() };
-    parser.set_language(elm)?;
-
-    Ok(parser)
 }

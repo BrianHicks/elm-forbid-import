@@ -1,8 +1,9 @@
 use clap::Clap;
 use std::path::PathBuf;
 use std::process;
-mod store;
 use store::Store;
+
+mod store;
 
 #[derive(Debug, Clap)]
 struct Options {

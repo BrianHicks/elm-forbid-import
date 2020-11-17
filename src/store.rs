@@ -6,7 +6,6 @@ use std::fs;
 use std::io;
 use std::path::PathBuf;
 use thiserror::Error;
-use toml;
 
 static AUTOGEN_HEADER: &str = "# WARNING: this file is managed with `elm-forbid-imports`. Manual edits will\n# be overwritten!\n\n";
 
@@ -61,7 +60,7 @@ impl Store {
     }
 
     pub fn write(&self, path: &PathBuf) -> Result<()> {
-        let serialized = toml::to_string(self)?;
+        let serialized = toml::to_string_pretty(self)?;
         fs::write(path, String::from(AUTOGEN_HEADER) + &serialized)?;
 
         Ok(())

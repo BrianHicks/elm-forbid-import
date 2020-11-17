@@ -35,6 +35,12 @@ enum Mode {
         hint: Option<String>,
     },
 
+    /// Stop forbidding the use of a specific import.
+    Unforbid {
+        /// The fully-qualified name to forbid (e.g. `Html.Events`)
+        name: String,
+    },
+
     /// Check what imports still need to be cleaned up
     Todo {
         /// Which names, if any, to specifically check up on
@@ -62,6 +68,11 @@ fn main() {
     let result = match opts.mode {
         Mode::Forbid { name, hint } => {
             store.forbid(name, hint);
+            store.write(&opts.config_path)
+        }
+
+        Mode::Unforbid { name } => {
+            store.unforbid(name);
             store.write(&opts.config_path)
         }
 

@@ -39,6 +39,10 @@ impl Store {
         self.forbidden.insert(name, ForbiddenImport { hint });
     }
 
+    pub fn unforbid(&mut self, name: String) {
+        self.forbidden.remove(&name);
+    }
+
     pub fn write(&self, path: &PathBuf) -> Result<()> {
         let serialized = toml::to_string(self)?;
         fs::write(path, String::from(AUTOGEN_HEADER) + &serialized)?;

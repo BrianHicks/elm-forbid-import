@@ -46,6 +46,12 @@ nix-env -if https://git.bytes.zone/brian/elm-forbid-import/archive/main.tar.gz
 If you don't want to install globally, check out this repo and run `nix-build` inside it.
 If you've got a rust toolchain set up, `cargo build` in the root directory should also work.
 
+## Roadmap
+
+- [ ] Persist other parts of the config, like the roots.
+- [ ] Parallel crawling in large projects
+- [ ] Look in all the `source-directories` in any specified `elm.json`s
+
 ## Frequently Asked Questions
 
 ### How is this better than `grep`?

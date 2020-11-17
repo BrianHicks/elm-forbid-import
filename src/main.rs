@@ -47,7 +47,7 @@ enum Mode {
         names: Vec<String>,
     },
 
-    /// Check that no uncontrolled imports are present (use me in CI!)
+    /// Check that no forbidden+unknown imports are present (use me in CI!)
     Check,
 
     /// Update the allowed imports list

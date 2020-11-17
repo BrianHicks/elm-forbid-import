@@ -163,7 +163,7 @@ impl Store {
                     } else {
                         let mut paths = BTreeSet::new();
                         paths.insert(dir_entry.path().to_path_buf());
-                        out.insert((&import).to_string(), paths);
+                        out.insert(import.to_owned(), paths);
                     }
                 }
             }

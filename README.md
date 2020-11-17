@@ -12,23 +12,23 @@ Then you can stick a line that says `elm-forbid-import check` line into your CI 
 So, let's get started!
 To forbid an import (say, `Regex`), run:
 
-```
+```sh
 $ elm-forbid-import forbid Regex
 ```
 
 Now `Regex` is forbidden in your project!
 
-You see where you need to work on:
+Let's see what needs work:
 
-```
-$ elm-forbid-import check Regex
+```sh
+$ elm-forbid-import check
 ```
 
 ... and get to work!
 
 When you're done, or can't remove any more, update the list of usages:
 
-```
+```sh
 $ elm-forbid-import update
 ```
 
@@ -61,7 +61,7 @@ fi
 
 But if you're working on a large project where you're managing or trying to reduce dependencies, this tool will allow you to do so without making other folks on your team pull their hair out when CI fails for the bajillionth time.
 
-### How common is deprecating a module, really?
+### How common is forbidding an import, really?
 
 We do it pretty frequently at NoRedInk.
 

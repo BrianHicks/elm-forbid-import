@@ -1,26 +1,37 @@
-use anyhow::Result;
-use serde::Serialize;
+use anyhow::{anyhow, Result};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
+use std::io;
 use std::path::PathBuf;
 use toml;
 
 static AUTOGEN_HEADER: &str = "# WARNING: this file is managed with `elm-forbid-imports`. Manual edits will\n# be overwritten!\n\n";
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Store {
     forbidden: HashMap<String, ForbiddenImport>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 struct ForbiddenImport {
     hint: Option<String>,
 }
 
 impl Store {
-    pub fn from_file_or_empty(path: &PathBuf) -> Store {
-        Store {
-            forbidden: HashMap::new(),
+    pub fn from_file_or_empty(path: &PathBuf) -> Result<Store> {
+        match fs::read(path) {
+            Ok(source) => {
+                let out: Store = toml::from_slice(&source)?;
+                Ok(out)
+            }
+
+            Err(err) => match err.kind() {
+                io::ErrorKind::NotFound => Ok(Store {
+                    forbidden: HashMap::new(),
+                }),
+                _ => Err(anyhow!(err)),
+            },
         }
     }
 

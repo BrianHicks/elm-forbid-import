@@ -50,10 +50,14 @@ enum Mode {
 
 fn main() {
     let opts = Options::parse();
-    println!("{:#?}", opts);
 
-    let mut store = Store::from_file_or_empty(&opts.config_path);
-    println!("{:#?}", store);
+    let mut store = match Store::from_file_or_empty(&opts.config_path) {
+        Ok(s) => s,
+        Err(err) => {
+            eprintln!("There was a problem loading the config file: {:#?}", err);
+            process::exit(1);
+        }
+    };
 
     let result = match opts.mode {
         Mode::Forbid { name, hint } => {
@@ -62,6 +66,7 @@ fn main() {
         }
 
         _ => {
+            println!("{:#?}", opts);
             process::exit(1);
         }
     };

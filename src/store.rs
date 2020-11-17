@@ -13,6 +13,10 @@ static IMPORT_QUERY: &str = "(import_clause (import) (upper_case_qid)@import)";
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Store {
+    #[serde(default)]
+    roots: BTreeSet<PathBuf>,
+
+    #[serde(default)]
     forbidden: BTreeMap<String, ForbiddenImport>,
 }
 
@@ -34,6 +38,7 @@ impl Store {
 
             Err(err) => match err.kind() {
                 io::ErrorKind::NotFound => Ok(Store {
+                    roots: BTreeSet::new(),
                     forbidden: BTreeMap::new(),
                 }),
                 _ => Err(anyhow!(err)),
@@ -57,6 +62,14 @@ impl Store {
 
     pub fn unforbid(&mut self, name: String) {
         self.forbidden.remove(&name);
+    }
+
+    pub fn add_root(&mut self, path: PathBuf) -> Result<()> {
+        Ok(())
+    }
+
+    pub fn remove_root(&mut self, path: PathBuf) -> Result<()> {
+        Ok(())
     }
 
     pub fn write(&self, path: &PathBuf) -> Result<()> {

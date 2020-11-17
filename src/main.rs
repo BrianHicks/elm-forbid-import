@@ -47,6 +47,18 @@ enum Mode {
         name: String,
     },
 
+    /// Add a project root (a directory containing `elm.json`) to check for imports.
+    AddRoot {
+        // The path of the directory, as relative to the working directory.
+        path: PathBuf,
+    },
+
+    /// Remove a root from checking.
+    RemoveRoot {
+        // The path of the root, as relative to the working directory.
+        path: PathBuf,
+    },
+
     /// Update the allowed imports list
     Update,
 
@@ -113,6 +125,18 @@ fn run(opts: Options) -> Result<i32> {
         Mode::Unforbid { name } => {
             store.unforbid(name);
             store.write(&opts.config_path)?;
+
+            Ok(0)
+        }
+
+        Mode::AddRoot { path } => {
+            store.add_root(path)?;
+
+            Ok(0)
+        }
+
+        Mode::RemoveRoot { path } => {
+            store.remove_root(path)?;
 
             Ok(0)
         }

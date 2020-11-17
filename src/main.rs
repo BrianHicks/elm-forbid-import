@@ -42,17 +42,14 @@ enum Mode {
         name: String,
     },
 
+    /// Update the allowed imports list
+    Update,
+
     /// Check what imports still need to be cleaned up
-    Todo {
+    Check {
         /// Which names, if any, to specifically check up on
         names: Vec<String>,
     },
-
-    /// Check that no forbidden+unknown imports are present (use me in CI!)
-    Check,
-
-    /// Update the allowed imports list
-    Update,
 }
 
 fn main() {

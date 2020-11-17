@@ -69,9 +69,9 @@ impl Store {
     pub fn update(&mut self, root: PathBuf) -> Result<()> {
         let imports_to_files = self.scan(root)?;
 
-        for (key, value) in self.forbidden.iter_mut() {
-            if let Some(new_usages) = imports_to_files.get(key) {
-                value.usages = new_usages.to_owned();
+        for (import, existing) in self.forbidden.iter_mut() {
+            if let Some(new_usages) = imports_to_files.get(import) {
+                existing.usages = new_usages.to_owned();
             }
         }
 

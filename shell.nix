@@ -16,5 +16,8 @@ stdenv.mkDerivation {
     rustPackages.clippy
     rustPackages.rustfmt
     rustc
+
+    # Benchmarking + Optimization
+    hyperfine
   ];
 }

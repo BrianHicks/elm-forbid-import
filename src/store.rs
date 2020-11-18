@@ -33,18 +33,16 @@ struct ForbiddenImport {
 
 impl Store {
     pub fn from_file_or_empty(path: &PathBuf) -> Result<Store> {
-        let config_path = path.canonicalize()?;
-
-        match fs::read(&config_path) {
+        match fs::read(&path) {
             Ok(source) => {
                 let mut out: Store = toml::from_slice(&source)?;
-                out.config_path = config_path;
+                out.config_path = path.to_owned();
                 Ok(out)
             }
 
             Err(err) => match err.kind() {
                 io::ErrorKind::NotFound => Ok(Store {
-                    config_path,
+                    config_path: path.to_owned(),
                     roots: BTreeSet::new(),
                     forbidden: BTreeMap::new(),
                 }),

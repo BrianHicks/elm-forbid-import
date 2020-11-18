@@ -71,7 +71,7 @@ impl Store {
 
     fn relative_to_config_path(&self, path: PathBuf) -> Result<PathBuf> {
         match self.config_path.parent() {
-            Some(parent) => match pathdiff::diff_paths(&path.to_owned().canonicalize()?, parent) {
+            Some(parent) => match pathdiff::diff_paths(&path.to_owned(), parent) {
                 Some(relative) => Ok(relative),
                 None => Err(anyhow!(
                     "could not compute a relative path between {} and {}",

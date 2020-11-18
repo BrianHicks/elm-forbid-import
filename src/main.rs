@@ -131,12 +131,14 @@ fn run(opts: Options) -> Result<i32> {
 
         Mode::AddRoot { path } => {
             store.add_root(path)?;
+            store.write(&opts.config_path)?;
 
             Ok(0)
         }
 
         Mode::RemoveRoot { path } => {
             store.remove_root(path)?;
+            store.write(&opts.config_path)?;
 
             Ok(0)
         }

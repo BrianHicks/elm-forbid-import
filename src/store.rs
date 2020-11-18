@@ -71,14 +71,30 @@ impl Store {
         self.forbidden.remove(&name);
     }
 
+    fn relative_to_config_path(&self, path: PathBuf) -> Result<PathBuf> {
+        match self.config_path.parent() {
+            Some(parent) => match pathdiff::diff_paths(&path.to_owned().canonicalize()?, parent) {
+                Some(relative) => Ok(relative),
+                None => Err(anyhow!(
+                    "could not compute a relative path between {} and {}",
+                    self.config_path.display(),
+                    path.display()
+                )),
+            },
+            None => Err(anyhow!(
+                "root config path ({}) does not have a parent.",
+                self.config_path.display()
+            )),
+        }
+    }
     pub fn add_root(&mut self, path: PathBuf) -> Result<()> {
-        self.roots.insert(path);
+        self.roots.insert(self.relative_to_config_path(path)?);
 
         Ok(())
     }
 
     pub fn remove_root(&mut self, path: PathBuf) -> Result<()> {
-        self.roots.remove(&path);
+        self.roots.remove(&self.relative_to_config_path(path)?);
 
         Ok(())
     }

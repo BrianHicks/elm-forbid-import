@@ -120,8 +120,8 @@ impl Store {
         Ok(())
     }
 
-    pub fn update(&mut self, root: PathBuf) -> Result<()> {
-        let imports_to_files = self.scan(root)?;
+    pub fn update(&mut self) -> Result<()> {
+        let imports_to_files = self.scan()?;
 
         for (import, existing) in self.forbidden.iter_mut() {
             existing.usages = match imports_to_files.get(import) {
@@ -133,8 +133,8 @@ impl Store {
         Ok(())
     }
 
-    pub fn check(&mut self, root: PathBuf) -> Result<Vec<CheckResult>> {
-        let imports_to_files = self.scan(root)?;
+    pub fn check(&mut self) -> Result<Vec<CheckResult>> {
+        let imports_to_files = self.scan()?;
         let mut out = Vec::new();
 
         for (import, existing) in self.forbidden.iter() {
@@ -162,11 +162,22 @@ impl Store {
         Ok(out)
     }
 
-    pub fn scan(&mut self, root: PathBuf) -> Result<BTreeMap<String, BTreeSet<PathBuf>>> {
+    pub fn scan(&mut self) -> Result<BTreeMap<String, BTreeSet<PathBuf>>> {
+        let default_root = PathBuf::from(".");
+        let mut roots = self.roots.iter();
+
+        let mut builder = ignore::WalkBuilder::new(roots.next().unwrap_or(&default_root));
+        for root in roots {
+            builder.add(root);
+        }
+
+        builder.standard_filters(true);
+
         let types = ignore::types::TypesBuilder::new()
             .add_defaults()
             .select("elm")
             .build()?;
+        builder.types(types);
 
         let mut parser = get_parser()?;
 
@@ -175,12 +186,7 @@ impl Store {
 
         let mut out: BTreeMap<String, BTreeSet<PathBuf>> = BTreeMap::new();
 
-        let walker = ignore::WalkBuilder::new(root)
-            .types(types)
-            .standard_filters(true)
-            .build();
-
-        for maybe_dir_entry in walker {
+        for maybe_dir_entry in builder.build() {
             let dir_entry = maybe_dir_entry?;
 
             // skip things that aren't files

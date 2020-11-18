@@ -8,11 +8,6 @@ mod store;
 
 #[derive(Debug, Clap)]
 struct Options {
-    /// The path to an Elm project (a folder containing elm.json) where
-    /// we'll start looking for imports.
-    #[clap(short, long, default_value = ".")]
-    root: PathBuf,
-
     /// The file where we'll store configuration about forbidden imports
     /// and todos.
     #[clap(short('c'), long("config"), default_value = "forbidden-imports.toml")]
@@ -139,14 +134,14 @@ fn run(opts: Options) -> Result<i32> {
         }
 
         Mode::Update => {
-            store.update(opts.root)?;
+            store.update()?;
             store.write()?;
 
             Ok(0)
         }
 
         Mode::Check => {
-            let results = store.check(opts.root)?;
+            let results = store.check()?;
 
             match opts.format {
                 Format::JSON => {

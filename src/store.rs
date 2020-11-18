@@ -13,6 +13,9 @@ static IMPORT_QUERY: &str = "(import_clause (import) (upper_case_qid)@import)";
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Store {
+    #[serde(skip)]
+    config_path: PathBuf,
+
     #[serde(default)]
     roots: BTreeSet<PathBuf>,
 
@@ -30,14 +33,18 @@ struct ForbiddenImport {
 
 impl Store {
     pub fn from_file_or_empty(path: &PathBuf) -> Result<Store> {
-        match fs::read(path) {
+        let config_path = path.canonicalize()?;
+
+        match fs::read(&config_path) {
             Ok(source) => {
-                let out: Store = toml::from_slice(&source)?;
+                let mut out: Store = toml::from_slice(&source)?;
+                out.config_path = config_path;
                 Ok(out)
             }
 
             Err(err) => match err.kind() {
                 io::ErrorKind::NotFound => Ok(Store {
+                    config_path,
                     roots: BTreeSet::new(),
                     forbidden: BTreeMap::new(),
                 }),

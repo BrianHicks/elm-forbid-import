@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{Context, Result};
 use clap::Clap;
 use std::path::PathBuf;
 use std::process;
@@ -106,13 +106,8 @@ fn main() {
 }
 
 fn run(opts: Options) -> Result<i32> {
-    let mut store = match Store::from_file_or_empty(&opts.config_path) {
-        Ok(s) => s,
-        Err(err) => {
-            eprintln!("There was a problem loading the config file: {:#?}", err);
-            process::exit(1);
-        }
-    };
+    let mut store =
+        Store::from_file_or_empty(&opts.config_path).context("could not load config file")?;
 
     match opts.mode {
         Mode::Forbid { name, hint } => {

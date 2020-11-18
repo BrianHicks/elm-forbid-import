@@ -112,35 +112,35 @@ fn run(opts: Options) -> Result<i32> {
     match opts.mode {
         Mode::Forbid { name, hint } => {
             store.forbid(name, hint);
-            store.write(&opts.config_path)?;
+            store.write()?;
 
             Ok(0)
         }
 
         Mode::Unforbid { name } => {
             store.unforbid(name);
-            store.write(&opts.config_path)?;
+            store.write()?;
 
             Ok(0)
         }
 
         Mode::AddRoot { path } => {
             store.add_root(path)?;
-            store.write(&opts.config_path)?;
+            store.write()?;
 
             Ok(0)
         }
 
         Mode::RemoveRoot { path } => {
             store.remove_root(path)?;
-            store.write(&opts.config_path)?;
+            store.write()?;
 
             Ok(0)
         }
 
         Mode::Update => {
             store.update(opts.root)?;
-            store.write(&opts.config_path)?;
+            store.write()?;
 
             Ok(0)
         }

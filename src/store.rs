@@ -99,9 +99,12 @@ impl Store {
         Ok(())
     }
 
-    pub fn write(&self, path: &PathBuf) -> Result<()> {
+    pub fn write(&self) -> Result<()> {
         let serialized = toml::to_string_pretty(self)?;
-        fs::write(path, String::from(AUTOGEN_HEADER) + &serialized)?;
+        fs::write(
+            &self.config_path,
+            String::from(AUTOGEN_HEADER) + &serialized,
+        )?;
 
         Ok(())
     }

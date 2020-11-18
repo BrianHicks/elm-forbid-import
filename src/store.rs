@@ -95,6 +95,26 @@ impl Store {
         }
     }
 
+    fn absolute_from_config_path(&self, path: PathBuf) -> Result<PathBuf> {
+        match self.config_path.parent() {
+            Some(parent) => {
+                let out = parent.join(&path).canonicalize().with_context(|| {
+                    format!(
+                        "could not make an absolute path with the config file and {}",
+                        path.display()
+                    )
+                })?;
+
+                Ok(out)
+            }
+
+            None => Err(anyhow!(
+                "root config path ({}) does not have a parent.",
+                self.config_path.display(),
+            )),
+        }
+    }
+
     pub fn add_root(&mut self, path: PathBuf) -> Result<()> {
         self.roots.insert(
             self.relative_to_config_path(path)
@@ -181,9 +201,32 @@ impl Store {
     pub fn scan(&mut self) -> Result<BTreeMap<String, BTreeSet<PathBuf>>> {
         let mut roots = self.roots.iter();
 
-        let mut builder = ignore::WalkBuilder::new(roots.next().unwrap_or(&self.config_path));
+        let first_root = match roots.next() {
+            None => match self.config_path.parent() {
+                Some(parent) if !parent.as_os_str().is_empty() => parent.to_path_buf(),
+                _ => PathBuf::from("."),
+            },
+            Some(root) => self
+                .absolute_from_config_path(root.to_owned())
+                .with_context(|| {
+                    format!(
+                        "could not determine a path from the config root to {}",
+                        root.display()
+                    )
+                })?,
+        };
+
+        let mut builder = ignore::WalkBuilder::new(first_root);
         for root in roots {
-            builder.add(root);
+            builder.add(
+                self.absolute_from_config_path(root.to_owned())
+                    .with_context(|| {
+                        format!(
+                            "could not determine a path from the config root to {}",
+                            root.display()
+                        )
+                    })?,
+            );
         }
 
         builder.standard_filters(true);

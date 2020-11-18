@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Context, Result};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::{self, Display};
@@ -43,7 +43,8 @@ impl Store {
     pub fn from_file_or_empty(path: &PathBuf) -> Result<Store> {
         match fs::read(&path) {
             Ok(source) => {
-                let mut out: Store = toml::from_slice(&source)?;
+                let mut out: Store = toml::from_slice(&source)
+                    .context("could not read TOML from the config file")?;
                 out.config_path = path.to_owned();
                 Ok(out)
             }
@@ -93,35 +94,48 @@ impl Store {
             )),
         }
     }
+
     pub fn add_root(&mut self, path: PathBuf) -> Result<()> {
-        self.roots.insert(self.relative_to_config_path(path)?);
+        self.roots.insert(
+            self.relative_to_config_path(path)
+                .context("could not find a path from the config file to the new root")?,
+        );
 
         Ok(())
     }
 
     pub fn remove_root(&mut self, path: PathBuf) -> Result<()> {
-        self.roots.remove(&self.relative_to_config_path(path)?);
+        self.roots.remove(
+            &self
+                .relative_to_config_path(path)
+                .context("could not find a path from the config file to the root to remove")?,
+        );
 
         Ok(())
     }
 
     pub fn write(&self) -> Result<()> {
-        let serialized = toml::to_string_pretty(self)?;
+        let serialized =
+            toml::to_string_pretty(self).context("could not serialize the store to TOML")?;
 
         if serialized.is_empty() && self.config_path.exists() {
-            fs::remove_file(&self.config_path)?;
+            fs::remove_file(&self.config_path)
+                .context("could not remove the newly-empty config file")?;
         } else {
             fs::write(
                 &self.config_path,
                 String::from(AUTOGEN_HEADER) + &serialized,
-            )?;
+            )
+            .context("could not write the new config file to disk")?;
         }
 
         Ok(())
     }
 
     pub fn update(&mut self) -> Result<()> {
-        let imports_to_files = self.scan()?;
+        let imports_to_files = self
+            .scan()
+            .context("could not scan the roots for Elm files")?;
 
         for (import, existing) in self.forbidden.iter_mut() {
             existing.usages = match imports_to_files.get(import) {
@@ -134,7 +148,9 @@ impl Store {
     }
 
     pub fn check(&mut self) -> Result<Vec<CheckResult>> {
-        let imports_to_files = self.scan()?;
+        let imports_to_files = self
+            .scan()
+            .context("could not scan the roots for Elm files")?;
         let mut out = Vec::new();
 
         for (import, existing) in self.forbidden.iter() {
@@ -176,25 +192,27 @@ impl Store {
         let types = ignore::types::TypesBuilder::new()
             .add_defaults()
             .select("elm")
-            .build()?;
+            .build()
+            .context("could not build extensions to scan for")?;
         builder.types(types);
 
-        let mut parser = get_parser()?;
+        let mut parser = get_parser().context("could not get the Elm parser")?;
 
         let query = tree_sitter::Query::new(get_language(), IMPORT_QUERY)
-            .map_err(TreeSitterError::QueryError)?;
+            .map_err(TreeSitterError::QueryError)
+            .context("could not instantiate the import query")?;
 
         let mut out: BTreeMap<String, BTreeSet<PathBuf>> = BTreeMap::new();
 
         for maybe_dir_entry in builder.build() {
-            let dir_entry = maybe_dir_entry?;
+            let dir_entry = maybe_dir_entry.context("could not read an entry from a root")?;
 
             // skip things that aren't files
             if dir_entry.file_type().map(|ft| ft.is_dir()).unwrap_or(true) {
                 continue;
             }
 
-            let source = fs::read(dir_entry.path())?;
+            let source = fs::read(dir_entry.path()).context("could not read an Elm file")?;
             let parsed = match parser.parse(&source, None) {
                 Some(p) => p,
                 None => return Err(anyhow!("could not parse {:}", dir_entry.path().display())),
@@ -203,7 +221,10 @@ impl Store {
             let mut cursor = tree_sitter::QueryCursor::new();
             for match_ in cursor.matches(&query, parsed.root_node(), |_| []) {
                 for capture in match_.captures {
-                    let import = capture.node.utf8_text(&source)?;
+                    let import = capture
+                        .node
+                        .utf8_text(&source)
+                        .context("could not convert a match to a source string")?;
 
                     if let Some(paths) = out.get_mut(import) {
                         paths.insert(dir_entry.path().to_path_buf());

@@ -94,58 +94,72 @@ fn main() {
     match run(opts) {
         Ok(exit_code) => process::exit(exit_code),
         Err(err) => {
-            eprintln!("{:#?}", err);
+            eprintln!("{:?}", err);
             process::exit(1);
         }
     }
 }
 
 fn run(opts: Options) -> Result<i32> {
-    let mut store =
-        Store::from_file_or_empty(&opts.config_path).context("could not load config file")?;
+    let mut store = Store::from_file_or_empty(&opts.config_path).with_context(|| {
+        format!(
+            "could not load the config at {}",
+            &opts.config_path.display()
+        )
+    })?;
 
     match opts.mode {
         Mode::Forbid { name, hint } => {
             store.forbid(name, hint);
-            store.write()?;
+            store.write().context("could not update the config file")?;
 
             Ok(0)
         }
 
         Mode::Unforbid { name } => {
             store.unforbid(name);
-            store.write()?;
+            store.write().context("could not update the config file")?;
 
             Ok(0)
         }
 
         Mode::AddRoot { path } => {
-            store.add_root(path)?;
-            store.write()?;
+            store.add_root(path).context("could not add the new root")?;
+            store.write().context("could not update the config file")?;
 
             Ok(0)
         }
 
         Mode::RemoveRoot { path } => {
-            store.remove_root(path)?;
-            store.write()?;
+            store
+                .remove_root(path)
+                .context("could not remove the root")?;
+            store.write().context("could not update the config file")?;
 
             Ok(0)
         }
 
         Mode::Update => {
-            store.update()?;
-            store.write()?;
+            store
+                .update()
+                .context("could not update usage information")?;
+            store.write().context("could not update the config file")?;
 
             Ok(0)
         }
 
         Mode::Check => {
-            let results = store.check()?;
+            let results = store
+                .check()
+                .context("could not check for forbidden imports")?;
 
             match opts.format {
                 Format::JSON => {
-                    println!("{}", serde_json::to_string(&results)?);
+                    println!(
+                        "{}",
+                        serde_json::to_string(&results)
+                            .context("when formatting results as JSON")?
+                    );
                     if results.is_empty() {
                         Ok(0)
                     } else {

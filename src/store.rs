@@ -16,7 +16,7 @@ pub struct Store {
     #[serde(skip)]
     config_path: PathBuf,
 
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "roots_are_empty")]
     roots: BTreeSet<PathBuf>,
 
     #[serde(default)]
@@ -29,6 +29,10 @@ struct ForbiddenImport {
 
     #[serde(default)]
     usages: BTreeSet<PathBuf>,
+}
+
+fn roots_are_empty(roots: &BTreeSet<PathBuf>) -> bool {
+    roots.is_empty()
 }
 
 impl Store {

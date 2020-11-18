@@ -179,10 +179,9 @@ impl Store {
     }
 
     pub fn scan(&mut self) -> Result<BTreeMap<String, BTreeSet<PathBuf>>> {
-        let default_root = PathBuf::from(".");
         let mut roots = self.roots.iter();
 
-        let mut builder = ignore::WalkBuilder::new(roots.next().unwrap_or(&default_root));
+        let mut builder = ignore::WalkBuilder::new(roots.next().unwrap_or(&self.config_path));
         for root in roots {
             builder.add(root);
         }

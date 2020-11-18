@@ -19,7 +19,7 @@ pub struct Store {
     #[serde(default, skip_serializing_if = "roots_are_empty")]
     roots: BTreeSet<PathBuf>,
 
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "forbidden_is_empty")]
     forbidden: BTreeMap<String, ForbiddenImport>,
 }
 
@@ -33,6 +33,10 @@ struct ForbiddenImport {
 
 fn roots_are_empty(roots: &BTreeSet<PathBuf>) -> bool {
     roots.is_empty()
+}
+
+fn forbidden_is_empty(forbidden: &BTreeMap<String, ForbiddenImport>) -> bool {
+    forbidden.is_empty()
 }
 
 impl Store {
@@ -103,10 +107,15 @@ impl Store {
 
     pub fn write(&self) -> Result<()> {
         let serialized = toml::to_string_pretty(self)?;
-        fs::write(
-            &self.config_path,
-            String::from(AUTOGEN_HEADER) + &serialized,
-        )?;
+
+        if serialized.is_empty() && self.config_path.exists() {
+            fs::remove_file(&self.config_path)?;
+        } else {
+            fs::write(
+                &self.config_path,
+                String::from(AUTOGEN_HEADER) + &serialized,
+            )?;
+        }
 
         Ok(())
     }

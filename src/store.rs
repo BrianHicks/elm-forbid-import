@@ -65,10 +65,14 @@ impl Store {
     }
 
     pub fn add_root(&mut self, path: PathBuf) -> Result<()> {
+        self.roots.insert(path);
+
         Ok(())
     }
 
     pub fn remove_root(&mut self, path: PathBuf) -> Result<()> {
+        self.roots.remove(&path);
+
         Ok(())
     }
 

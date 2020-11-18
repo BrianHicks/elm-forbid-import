@@ -158,11 +158,8 @@ fn run(opts: Options) -> Result<i32> {
                     }
                 }
                 Format::Human => {
-                    let all_in_config = results.iter().all(|item| item.error_is_in_config());
-
-                    if !all_in_config {
-                        println!("I found some forbidden imports!\n")
-                    }
+                    let all_in_config =
+                        !results.is_empty() && results.iter().all(|item| item.error_is_in_config());
 
                     for result in &results {
                         println!("{}", result);

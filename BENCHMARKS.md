@@ -23,7 +23,7 @@ They're usually all in a block, so it's probably fine to stop processing lines o
 | Target          | Old Time          | New Time          | Speedup                                         |
 |-----------------|-------------------|-------------------|-------------------------------------------------|
 | elm-spa-example | 11.2 ms ± 0.5 ms  | 10.6 ms ± 0.6 ms  | within the margin of error, probably no speedup |
-| work repo       | 235.2 ms ± 6.1 ms | 196.7 ms ± 5.4 ms | ~38ms speedup, 83% of the time.                 |
+| work repo       | 235.2 ms ± 6.1 ms | 196.7 ms ± 5.4 ms | ~38ms speedup, 1.19x faster                     |
 
 Seems worth keeping for the larger repo.
 
@@ -32,10 +32,10 @@ Seems worth keeping for the larger repo.
 Tree-sitter is an amazing tool, but I'm using the simplest possible form of it.
 I bet a regex would be faster!
 
-| Target          | Old Time         | New Time          | Speedup                           |
-|-----------------|------------------|-------------------|-----------------------------------|
-| elm-spa-example | 30.9 ms ± 1.3 ms | 11.2 ms ± 0.5 ms  | ~20ms, or ~36% of the time        |
-| work repo       | 2.055 s ± 0.041s | 235.2 ms ± 6.1 ms | ~1.82s, or ~11% (!!!) of the time |
+| Target          | Old Time         | New Time          | Speedup                        |
+|-----------------|------------------|-------------------|--------------------------------|
+| elm-spa-example | 30.9 ms ± 1.3 ms | 11.2 ms ± 0.5 ms  | ~20ms, or ~2.75x faster        |
+| work repo       | 2.055 s ± 0.041s | 235.2 ms ± 6.1 ms | ~1.82s, or ~8.75x (!!!) faster |
 
 What a nice win!
 
@@ -57,10 +57,10 @@ In the end, this is still not worth it, and I'm backing the change out.
 `ignore` has a parallel walker implementation.
 Here's what happens when we switch to walking in parallel:
 
-| Target          | Old Time        | New Time          | Speedup                     |
-|-----------------|-----------------|-------------------|-----------------------------|
-| elm-spa-example | 44.9ms ± 2ms    | 30.9 ms ± 1.3 ms  | ~14ms, or ~69% of the time  |
-| work repo       | 3.920s ± 0.252s | 2.055 s ± 0.041 s | ~1.87s, or ~52% of the time |
+| Target          | Old Time        | New Time          | Speedup                |
+|-----------------|-----------------|-------------------|------------------------|
+| elm-spa-example | 44.9ms ± 2ms    | 30.9 ms ± 1.3 ms  | ~14ms, or 1.45x faster |
+| work repo       | 3.920s ± 0.252s | 2.055 s ± 0.041 s | ~1.87s, or 1.9x faster |
 
 ### November 18: Link-time Optimization
 

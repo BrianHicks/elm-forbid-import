@@ -4,6 +4,7 @@ use std::path::PathBuf;
 use std::process;
 use store::Store;
 
+mod importfinder;
 mod store;
 
 #[derive(Debug, Clap)]

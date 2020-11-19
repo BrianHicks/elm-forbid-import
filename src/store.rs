@@ -5,11 +5,10 @@ use std::fmt::{self, Display};
 use std::fs;
 use std::io;
 use std::path::PathBuf;
-use thiserror::Error;
+
+use crate::importfinder;
 
 static AUTOGEN_HEADER: &str = "# WARNING: this file is managed with `elm-forbid-imports`. Manual edits will\n# be overwritten!\n\n";
-
-static IMPORT_QUERY: &str = "(import_clause (import) (upper_case_qid)@import)";
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Store {
@@ -199,87 +198,15 @@ impl Store {
     }
 
     pub fn scan(&mut self) -> Result<BTreeMap<String, BTreeSet<PathBuf>>> {
-        let mut roots = self.roots.iter();
+        let mut absolute_roots = BTreeSet::new();
 
-        let first_root = match roots.next() {
-            None => match self.config_path.parent() {
-                Some(parent) if !parent.as_os_str().is_empty() => parent.to_path_buf(),
-                _ => PathBuf::from("."),
-            },
-            Some(root) => self
-                .absolute_from_config_path(root.to_owned())
-                .with_context(|| {
-                    format!(
-                        "could not determine a path from the config root to {}",
-                        root.display()
-                    )
-                })?,
-        };
-
-        let mut builder = ignore::WalkBuilder::new(first_root);
-        for root in roots {
-            builder.add(
-                self.absolute_from_config_path(root.to_owned())
-                    .with_context(|| {
-                        format!(
-                            "could not determine a path from the config root to {}",
-                            root.display()
-                        )
-                    })?,
-            );
+        for root in self.roots.iter() {
+            absolute_roots.insert(self.absolute_from_config_path(root.to_owned())?);
         }
 
-        builder.standard_filters(true);
+        let finder = importfinder::ImportFinder::new(absolute_roots);
 
-        let types = ignore::types::TypesBuilder::new()
-            .add_defaults()
-            .select("elm")
-            .build()
-            .context("could not build extensions to scan for")?;
-        builder.types(types);
-
-        let mut parser = get_parser().context("could not get the Elm parser")?;
-
-        let query = tree_sitter::Query::new(get_language(), IMPORT_QUERY)
-            .map_err(TreeSitterError::QueryError)
-            .context("could not instantiate the import query")?;
-
-        let mut out: BTreeMap<String, BTreeSet<PathBuf>> = BTreeMap::new();
-
-        for maybe_dir_entry in builder.build() {
-            let dir_entry = maybe_dir_entry.context("could not read an entry from a root")?;
-
-            // skip things that aren't files
-            if dir_entry.file_type().map(|ft| ft.is_dir()).unwrap_or(true) {
-                continue;
-            }
-
-            let source = fs::read(dir_entry.path()).context("could not read an Elm file")?;
-            let parsed = match parser.parse(&source, None) {
-                Some(p) => p,
-                None => return Err(anyhow!("could not parse {:}", dir_entry.path().display())),
-            };
-
-            let mut cursor = tree_sitter::QueryCursor::new();
-            for match_ in cursor.matches(&query, parsed.root_node(), |_| []) {
-                for capture in match_.captures {
-                    let import = capture
-                        .node
-                        .utf8_text(&source)
-                        .context("could not convert a match to a source string")?;
-
-                    if let Some(paths) = out.get_mut(import) {
-                        paths.insert(dir_entry.path().to_path_buf());
-                    } else {
-                        let mut paths = BTreeSet::new();
-                        paths.insert(dir_entry.path().to_path_buf());
-                        out.insert(import.to_owned(), paths);
-                    }
-                }
-            }
-        }
-
-        Ok(out)
+        finder.find()
     }
 }
 
@@ -327,33 +254,4 @@ impl Display for CheckResult<'_> {
             ),
         }
     }
-}
-
-// tree sitter
-
-extern "C" {
-    fn tree_sitter_elm() -> tree_sitter::Language;
-}
-
-fn get_language() -> tree_sitter::Language {
-    unsafe { tree_sitter_elm() }
-}
-
-fn get_parser() -> Result<tree_sitter::Parser, TreeSitterError> {
-    let mut parser = tree_sitter::Parser::new();
-
-    parser
-        .set_language(get_language())
-        .map_err(TreeSitterError::LanguageError)?;
-
-    Ok(parser)
-}
-
-#[derive(Debug, Error)]
-enum TreeSitterError {
-    #[error("language error: {0}")]
-    LanguageError(tree_sitter::LanguageError),
-
-    #[error("query error: {0:?}")]
-    QueryError(tree_sitter::QueryError),
 }

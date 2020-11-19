@@ -4,8 +4,8 @@ I'm benchmarking on two repos (see `script/bench.sh`):
 
 | Target                                                                              | Time              |
 |-------------------------------------------------------------------------------------|-------------------|
-| (elm-spa-example)[https://github.com/rtfeldman/elm-spa-example] (224kb of Elm code) | 30.9 ms ± 1.3 ms  |
-| my main work repo (12mb of Elm code)                                                | 2.055 s ± 0.041 s |
+| (elm-spa-example)[https://github.com/rtfeldman/elm-spa-example] (224kb of Elm code) | 11.2 ms ± 0.5 ms  |
+| my main work repo (12mb of Elm code)                                                | 235.2 ms ± 6.1 ms |
 
 I want this to be much faster.
 The old tool that this is replacing for me does more and runs in `1.210 s ± 0.016 s` on the work repo... and it's written in Python (not that Python is necessarily *slow* but it's probably possible to get a faster result!)
@@ -16,6 +16,18 @@ It's not really super essential for this task, since the regex I actually want i
 We can probably do better by reducing allocations etc but there are lower-hanging fruit.
 
 ## Things I've tried
+
+### November 19: Switching to regular expressions
+
+Tree-sitter is an amazing tool, but I'm using the simplest possible form of it.
+I bet a regex would be faster!
+
+| Target          | Old Time         | New Time          | Speedup                           |
+|-----------------|------------------|-------------------|-----------------------------------|
+| elm-spa-example | 30.9 ms ± 1.3 ms | 11.2 ms ± 0.5 ms  | ~20ms, or ~36% of the time        |
+| work repo       | 2.055 s ± 0.041s | 235.2 ms ± 6.1 ms | ~1.82s, or ~11% (!!!) of the time |
+
+What a nice win!
 
 ### November 19: Link-time Optimization Again
 

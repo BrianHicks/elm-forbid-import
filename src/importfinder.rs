@@ -85,8 +85,8 @@ impl ImportFinder {
                 };
 
                 lazy_static! {
-                    // TODO: maybe faster to use `([^ ]+)` for the match
-                    static ref IMPORT_RE: Regex = Regex::new(r"^import +([A-Z][A-Za-z0-9_\.]*)").unwrap();
+                    static ref IMPORT_RE: Regex =
+                        Regex::new(r"^import +([A-Z][A-Za-z0-9_\.]*)").unwrap();
                 }
 
                 // perf idea; keep track of if we've finished the import list and

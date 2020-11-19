@@ -1,4 +1,5 @@
 use anyhow::{anyhow, bail, Context, Result};
+use crossbeam::channel;
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::PathBuf;
@@ -37,48 +38,113 @@ impl ImportFinder {
             .context("could not build extensions to scan for")?;
         builder.types(types);
 
-        let mut parser = get_parser().context("could not get the Elm parser")?;
-
         let query = tree_sitter::Query::new(get_language(), IMPORT_QUERY)
             .map_err(TreeSitterError::QueryError)
             .context("could not instantiate the import query")?;
 
         let mut out: BTreeMap<String, BTreeSet<FoundImport>> = BTreeMap::new();
 
-        for maybe_dir_entry in builder.build() {
-            let dir_entry = maybe_dir_entry.context("could not read an entry from a root")?;
+        let (parent_results_sender, results_receiver) = channel::unbounded();
+        let (parent_error_sender, error_receiver) = channel::unbounded();
 
-            // skip things that aren't files
-            if dir_entry.file_type().map(|ft| ft.is_dir()).unwrap_or(true) {
-                continue;
-            }
+        builder.build_parallel().run(|| {
+            let results_sender = parent_results_sender.clone();
+            let error_sender = parent_error_sender.clone();
 
-            let source = fs::read(dir_entry.path()).context("could not read an Elm file")?;
-            let parsed = match parser.parse(&source, None) {
-                Some(p) => p,
-                None => return Err(anyhow!("could not parse {:}", dir_entry.path().display())),
-            };
+            let mut parser = get_parser().unwrap();
 
-            let mut cursor = tree_sitter::QueryCursor::new();
-            for match_ in cursor.matches(&query, parsed.root_node(), |_| []) {
-                for capture in match_.captures {
-                    let import = capture
-                        .node
-                        .utf8_text(&source)
-                        .context("could not convert a match to a source string")?;
+            let query = &query;
 
-                    let found_import = FoundImport {
-                        path: dir_entry.path().to_path_buf(),
-                        position: capture.node.start_position(),
-                    };
-
-                    if let Some(paths) = out.get_mut(import) {
-                        paths.insert(found_import);
-                    } else {
-                        let mut paths = BTreeSet::new();
-                        paths.insert(found_import);
-                        out.insert(import.to_owned(), paths);
+            Box::new(move |maybe_dir_entry| {
+                let dir_entry = match maybe_dir_entry.context("could not read an entry from a root")
+                {
+                    Ok(de) => de,
+                    Err(err) => {
+                        #[allow(unused_must_use)]
+                        let _ = error_sender.send(err);
+                        return ignore::WalkState::Quit;
                     }
+                };
+
+                // skip things that aren't files
+                if dir_entry.file_type().map(|ft| ft.is_dir()).unwrap_or(true) {
+                    return ignore::WalkState::Continue;
+                }
+
+                let source = match fs::read(dir_entry.path()).context("could not read an Elm file")
+                {
+                    Ok(s) => s,
+                    Err(err) => {
+                        #[allow(unused_must_use)]
+                        let _ = error_sender.send(err);
+                        return ignore::WalkState::Quit;
+                    }
+                };
+
+                let parsed = match parser.parse(&source, None) {
+                    Some(p) => p,
+                    None => {
+                        #[allow(unused_must_use)]
+                        let _ = error_sender
+                            .send(anyhow!("could not parse {:}", dir_entry.path().display()));
+                        return ignore::WalkState::Quit;
+                    }
+                };
+
+                let mut cursor = tree_sitter::QueryCursor::new();
+
+                for match_ in cursor.matches(&query, parsed.root_node(), |_| []) {
+                    for capture in match_.captures {
+                        let import = match capture
+                            .node
+                            .utf8_text(&source)
+                            .context("could not convert a match to a source string")
+                        {
+                            Ok(i) => i,
+                            #[allow(unused_must_use)]
+                            Err(err) => {
+                                error_sender.send(err);
+                                return ignore::WalkState::Quit;
+                            }
+                        };
+
+                        if let Err(err) = results_sender.send(FoundImport {
+                            import: import.to_string(),
+                            path: dir_entry.path().to_path_buf(),
+                            position: capture.node.start_position(),
+                        }) {
+                            #[allow(unused_must_use)]
+                            let _ = error_sender.send(err.into());
+                            return ignore::WalkState::Quit;
+                        };
+                    }
+                }
+
+                ignore::WalkState::Continue
+            })
+        });
+
+        // the sources for the clones in the parallel worker threads have
+        // to be dropped or we'll block forever! Oh no!
+        drop(parent_results_sender);
+        drop(parent_error_sender);
+
+        if let Some(err) = error_receiver.iter().next() {
+            return Err(err);
+        }
+
+        for result in results_receiver {
+            match out.get_mut(&result.import) {
+                Some(value) => {
+                    value.insert(result);
+                }
+                None => {
+                    let key = result.import.to_string();
+
+                    let mut value = BTreeSet::new();
+                    value.insert(result);
+
+                    out.insert(key, value);
                 }
             }
         }
@@ -87,8 +153,9 @@ impl ImportFinder {
     }
 }
 
-#[derive(PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct FoundImport {
+    pub import: String,
     pub path: PathBuf,
     pub position: tree_sitter::Point,
 }

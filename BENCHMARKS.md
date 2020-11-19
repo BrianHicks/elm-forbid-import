@@ -7,11 +7,13 @@ I'm benchmarking on two repos (see `script/bench.sh`):
 | (elm-spa-example)[https://github.com/rtfeldman/elm-spa-example] (224kb of Elm code) | 30.9 ms ± 1.3 ms  |
 | my main work repo (12mb of Elm code)                                                | 2.055 s ± 0.041 s |
 
-We're doing pretty well on these.
-We can probably do better by reducing allocations etc but it's not slow enough to justify the effort right now, IMO.
+I want this to be much faster.
+The old tool that this is replacing for me does more and runs in 1.210 s ± 0.016 s... and it's written in Python (not that Python is necessarily *slow* but it's probably possible to get a faster result!)
 
 It would probably also be OK to drop tree-sitter.
 It's not really super essential for this task, since the regex I actually want is tiny: `^import ([A-Z][\w\d\.]+)`
+
+We can probably do better by reducing allocations etc but there are lower-hanging fruit.
 
 ## Things I've tried
 

@@ -2,10 +2,10 @@
 
 I'm benchmarking on two repos (see `script/bench.sh`):
 
-| Target                                                                              | Time             |
-|-------------------------------------------------------------------------------------|------------------|
-| (elm-spa-example)[https://github.com/rtfeldman/elm-spa-example] (224kb of Elm code) | 30.9 ms ± 1.3 ms |
-| my main work repo (12mb of Elm code)                                                | 2.055 s ± 0.041s |
+| Target                                                                              | Time              |
+|-------------------------------------------------------------------------------------|-------------------|
+| (elm-spa-example)[https://github.com/rtfeldman/elm-spa-example] (224kb of Elm code) | 30.9 ms ± 1.3 ms  |
+| my main work repo (12mb of Elm code)                                                | 2.055 s ± 0.041 s |
 
 We're doing pretty well on these.
 We can probably do better by reducing allocations etc but it's not slow enough to justify the effort right now, IMO.
@@ -19,10 +19,10 @@ It's not really super essential for this task, since the regex I actually want i
 
 I added `crossbeam` and used a lot more of `ignore`, so maybe LTO has an effect now?
 
-| Target          | Old Time         | New Time         | Speedup                            |
-|-----------------|------------------|------------------|------------------------------------|
-| elm-spa-example | 30.9 ms ± 1.3 ms | 29.7 ms ± 1.0 ms | Something like 1ms                 |
-| work repo       | 2.055 s ± 0.041s | 2.129 s ± 0.022s | actually slowed down by like 0.1s? |
+| Target          | Old Time         | New Time           | Speedup                            |
+|-----------------|------------------|--------------------|------------------------------------|
+| elm-spa-example | 30.9 ms ± 1.3 ms | 29.7 ms ± 1.0 ms   | Something like 1ms                 |
+| work repo       | 2.055 s ± 0.041s | 2.129 s ± 0.022 s  | actually slowed down by like 0.1s? |
 
 Build times are worse, but in a manageable way: a fresh build of `cargo build --release` now takes 2m19s (up 30s from 1m49s)
 
@@ -33,10 +33,10 @@ In the end, this is still not worth it, and I'm backing the change out.
 `ignore` has a parallel walker implementation.
 Here's what happens when we switch to walking in parallel:
 
-| Target          | Old Time        | New Time         | Speedup                     |
-|-----------------|-----------------|------------------|-----------------------------|
-| elm-spa-example | 44.9ms ± 2ms    | 30.9 ms ± 1.3 ms | ~14ms, or ~69% of the time  |
-| work repo       | 3.920s ± 0.252s | 2.055 s ± 0.041s | ~1.87s, or ~52% of the time |
+| Target          | Old Time        | New Time          | Speedup                     |
+|-----------------|-----------------|-------------------|-----------------------------|
+| elm-spa-example | 44.9ms ± 2ms    | 30.9 ms ± 1.3 ms  | ~14ms, or ~69% of the time  |
+| work repo       | 3.920s ± 0.252s | 2.055 s ± 0.041 s | ~1.87s, or ~52% of the time |
 
 ### November 18: Link-time Optimization
 

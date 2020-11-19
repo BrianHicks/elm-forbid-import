@@ -8,7 +8,7 @@ I'm benchmarking on two repos (see `script/bench.sh`):
 | my main work repo (12mb of Elm code)                                                | 2.055 s ± 0.041 s |
 
 I want this to be much faster.
-The old tool that this is replacing for me does more and runs in 1.210 s ± 0.016 s... and it's written in Python (not that Python is necessarily *slow* but it's probably possible to get a faster result!)
+The old tool that this is replacing for me does more and runs in `1.210 s ± 0.016 s` on the work repo... and it's written in Python (not that Python is necessarily *slow* but it's probably possible to get a faster result!)
 
 It would probably also be OK to drop tree-sitter.
 It's not really super essential for this task, since the regex I actually want is tiny: `^import ([A-Z][\w\d\.]+)`

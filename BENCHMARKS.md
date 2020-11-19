@@ -33,10 +33,10 @@ What a nice win!
 
 I added `crossbeam` and used a lot more of `ignore`, so maybe LTO has an effect now?
 
-| Target          | Old Time         | New Time           | Speedup                            |
-|-----------------|------------------|--------------------|------------------------------------|
-| elm-spa-example | 30.9 ms ± 1.3 ms | 29.7 ms ± 1.0 ms   | Something like 1ms                 |
-| work repo       | 2.055 s ± 0.041s | 2.129 s ± 0.022 s  | actually slowed down by like 0.1s? |
+| Target          | Old Time         | New Time          | Speedup                            |
+|-----------------|------------------|-------------------|------------------------------------|
+| elm-spa-example | 30.9 ms ± 1.3 ms | 29.7 ms ± 1.0 ms  | Something like 1ms                 |
+| work repo       | 2.055 s ± 0.041s | 2.129 s ± 0.022 s | actually slowed down by like 0.1s? |
 
 Build times are worse, but in a manageable way: a fresh build of `cargo build --release` now takes 2m19s (up 30s from 1m49s)
 

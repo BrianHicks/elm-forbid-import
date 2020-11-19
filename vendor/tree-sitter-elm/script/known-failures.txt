@@ -1,2 +1,0 @@
-examples/elm-browser/examples/drag.elm
-examples/elm-ui/tests-rendering/automation/templates/Run.elm

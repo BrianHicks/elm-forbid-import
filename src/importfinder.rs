@@ -1,11 +1,11 @@
-use anyhow::{anyhow, bail, Context, Result};
+use anyhow::{bail, Context, Result};
 use crossbeam::channel;
+use lazy_static::lazy_static;
+use regex::Regex;
+use serde::Serialize;
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::PathBuf;
-use thiserror::Error;
-
-static IMPORT_QUERY: &str = "(import_clause (import) (upper_case_qid)@import)";
 
 pub struct ImportFinder {
     roots: BTreeSet<PathBuf>,
@@ -38,10 +38,6 @@ impl ImportFinder {
             .context("could not build extensions to scan for")?;
         builder.types(types);
 
-        let query = tree_sitter::Query::new(get_language(), IMPORT_QUERY)
-            .map_err(TreeSitterError::QueryError)
-            .context("could not instantiate the import query")?;
-
         let mut out: BTreeMap<String, BTreeSet<FoundImport>> = BTreeMap::new();
 
         let (parent_results_sender, results_receiver) = channel::unbounded();
@@ -50,10 +46,6 @@ impl ImportFinder {
         builder.build_parallel().run(|| {
             let results_sender = parent_results_sender.clone();
             let error_sender = parent_error_sender.clone();
-
-            let mut parser = get_parser().unwrap();
-
-            let query = &query;
 
             Box::new(move |maybe_dir_entry| {
                 let dir_entry = match maybe_dir_entry.context("could not read an entry from a root")
@@ -71,7 +63,18 @@ impl ImportFinder {
                     return ignore::WalkState::Continue;
                 }
 
-                let source = match fs::read(dir_entry.path()).context("could not read an Elm file")
+                let source_bytes =
+                    match fs::read(dir_entry.path()).context("could not read an Elm file") {
+                        Ok(s) => s,
+                        Err(err) => {
+                            #[allow(unused_must_use)]
+                            let _ = error_sender.send(err);
+                            return ignore::WalkState::Quit;
+                        }
+                    };
+
+                let source = match std::str::from_utf8(&source_bytes)
+                    .context("could not read the source as utf8")
                 {
                     Ok(s) => s,
                     Err(err) => {
@@ -81,42 +84,31 @@ impl ImportFinder {
                     }
                 };
 
-                let parsed = match parser.parse(&source, None) {
-                    Some(p) => p,
-                    None => {
-                        #[allow(unused_must_use)]
-                        let _ = error_sender
-                            .send(anyhow!("could not parse {:}", dir_entry.path().display()));
-                        return ignore::WalkState::Quit;
-                    }
-                };
+                lazy_static! {
+                    // TODO: maybe faster to use `([^ ]+)` for the match
+                    static ref IMPORT_RE: Regex = Regex::new(r"^import +([A-Z][A-Za-z0-9_\.]*)").unwrap();
+                }
 
-                let mut cursor = tree_sitter::QueryCursor::new();
+                // perf idea; keep track of if we've finished the import list and
+                // bail on any further lines once we get there. Since imports
+                // are forbidden after the block at the top of the module, we
+                // shouldn't miss anything by skipping the rest of the lines
+                // in each file!
 
-                for match_ in cursor.matches(&query, parsed.root_node(), |_| []) {
-                    for capture in match_.captures {
-                        let import = match capture
-                            .node
-                            .utf8_text(&source)
-                            .context("could not convert a match to a source string")
-                        {
-                            Ok(i) => i,
-                            #[allow(unused_must_use)]
-                            Err(err) => {
-                                error_sender.send(err);
-                                return ignore::WalkState::Quit;
-                            }
-                        };
-
+                for (line_number, line) in source.lines().enumerate() {
+                    if let Some(import_module) = IMPORT_RE.captures(line).and_then(|m| m.get(1)) {
                         if let Err(err) = results_sender.send(FoundImport {
-                            import: import.to_string(),
                             path: dir_entry.path().to_path_buf(),
-                            position: capture.node.start_position(),
+                            import: import_module.as_str().to_string(),
+                            position: Position {
+                                row: line_number + 1,
+                                column: import_module.start(),
+                            },
                         }) {
                             #[allow(unused_must_use)]
                             let _ = error_sender.send(err.into());
                             return ignore::WalkState::Quit;
-                        };
+                        }
                     }
                 }
 
@@ -157,34 +149,11 @@ impl ImportFinder {
 pub struct FoundImport {
     pub import: String,
     pub path: PathBuf,
-    pub position: tree_sitter::Point,
+    pub position: Position,
 }
 
-// tree sitter
-
-extern "C" {
-    fn tree_sitter_elm() -> tree_sitter::Language;
-}
-
-fn get_language() -> tree_sitter::Language {
-    unsafe { tree_sitter_elm() }
-}
-
-fn get_parser() -> Result<tree_sitter::Parser, TreeSitterError> {
-    let mut parser = tree_sitter::Parser::new();
-
-    parser
-        .set_language(get_language())
-        .map_err(TreeSitterError::LanguageError)?;
-
-    Ok(parser)
-}
-
-#[derive(Debug, Error)]
-enum TreeSitterError {
-    #[error("language error: {0}")]
-    LanguageError(tree_sitter::LanguageError),
-
-    #[error("query error: {0:?}")]
-    QueryError(tree_sitter::QueryError),
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize)]
+pub struct Position {
+    pub row: usize,
+    pub column: usize,
 }

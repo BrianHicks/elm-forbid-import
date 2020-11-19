@@ -1,6 +1,5 @@
 use anyhow::{anyhow, Context, Result};
-use serde::ser::SerializeStruct;
-use serde::{Deserialize, Serialize, Serializer};
+use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::{self, Display};
 use std::fs;
@@ -183,7 +182,7 @@ impl Store {
                     .map(|found| found.path.to_owned())
                     .collect::<BTreeSet<PathBuf>>();
 
-                let mut to_positions: BTreeMap<&PathBuf, tree_sitter::Point> = BTreeMap::new();
+                let mut to_positions: BTreeMap<&PathBuf, importfinder::Position> = BTreeMap::new();
 
                 for import in found_imports.iter() {
                     to_positions.insert(&import.path, import.position);
@@ -192,7 +191,7 @@ impl Store {
                 for file in new_usages.difference(&existing.usages) {
                     out.push(CheckResult {
                         file: file.to_path_buf(),
-                        position: to_positions.get(file).map(|p| Point(*p)),
+                        position: to_positions.get(file).copied(),
                         import: import.to_string(),
                         error_location: ErrorLocation::InElmSource {
                             hint: existing.hint.as_ref(),
@@ -230,30 +229,9 @@ impl Store {
 #[derive(Debug, Serialize)]
 pub struct CheckResult<'a> {
     file: PathBuf,
-    position: Option<Point>,
+    position: Option<importfinder::Position>,
     import: String,
     error_location: ErrorLocation<'a>,
-}
-
-#[derive(Debug)]
-pub struct Point(tree_sitter::Point);
-
-impl Serialize for Point {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let mut state = serializer.serialize_struct("Color", 2)?;
-        state.serialize_field("row", &self.0.row)?;
-        state.serialize_field("column", &self.0.column)?;
-        state.end()
-    }
-}
-
-impl Display for Point {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}:{}", self.0.row, self.0.column)
-    }
 }
 
 #[derive(Debug, PartialEq, Serialize)]
@@ -279,7 +257,7 @@ impl Display for CheckResult<'_> {
                 };
 
                 let position_string = match &self.position {
-                    Some(position) => format!(":{}", position),
+                    Some(position) => format!(":{}:{}", position.row, position.column),
                     None => String::new(),
                 };
 

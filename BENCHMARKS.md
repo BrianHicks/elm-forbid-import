@@ -10,7 +10,23 @@ I'm benchmarking on two repos (see `script/bench.sh`):
 We're doing pretty well on these.
 We can probably do better by reducing allocations etc but it's not slow enough to justify the effort right now, IMO.
 
+It would probably also be OK to drop tree-sitter.
+It's not really super essential for this task, since the regex I actually want is tiny: `^import ([A-Z][\w\d\.]+)`
+
 ## Things I've tried
+
+### November 19: Link-time Optimization Again
+
+I added `crossbeam` and used a lot more of `ignore`, so maybe LTO has an effect now?
+
+| Target          | Old Time         | New Time         | Speedup                            |
+|-----------------|------------------|------------------|------------------------------------|
+| elm-spa-example | 30.9 ms ± 1.3 ms | 29.7 ms ± 1.0 ms | Something like 1ms                 |
+| work repo       | 2.055 s ± 0.041s | 2.129 s ± 0.022s | actually slowed down by like 0.1s? |
+
+Build times are worse, but in a manageable way: a fresh build of `cargo build --release` now takes 2m19s (up 30s from 1m49s)
+
+In the end, this is still not worth it, and I'm backing the change out.
 
 ### November 19: Parallel Walker
 

@@ -94,20 +94,31 @@ impl ImportFinder {
                 // are forbidden after the block at the top of the module, we
                 // shouldn't miss anything by skipping the rest of the lines
                 // in each file!
+                let mut seen_an_import = false;
 
                 for (line_number, line) in source.lines().enumerate() {
-                    if let Some(import_module) = IMPORT_RE.captures(line).and_then(|m| m.get(1)) {
-                        if let Err(err) = results_sender.send(FoundImport {
-                            path: dir_entry.path().to_path_buf(),
-                            import: import_module.as_str().to_string(),
-                            position: Position {
-                                row: line_number + 1,
-                                column: import_module.start(),
-                            },
-                        }) {
-                            #[allow(unused_must_use)]
-                            let _ = error_sender.send(err.into());
-                            return ignore::WalkState::Quit;
+                    match IMPORT_RE.captures(line).and_then(|m| m.get(1)) {
+                        Some(import_module) => {
+                            seen_an_import = true;
+
+                            if let Err(err) = results_sender.send(FoundImport {
+                                path: dir_entry.path().to_path_buf(),
+                                import: import_module.as_str().to_string(),
+                                position: Position {
+                                    row: line_number + 1,
+                                    column: import_module.start(),
+                                },
+                            }) {
+                                #[allow(unused_must_use)]
+                                let _ = error_sender.send(err.into());
+                                return ignore::WalkState::Quit;
+                            }
+                        }
+
+                        None => {
+                            if seen_an_import {
+                                return ignore::WalkState::Continue;
+                            }
                         }
                     }
                 }

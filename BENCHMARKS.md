@@ -4,18 +4,28 @@ I'm benchmarking on two repos (see `script/bench.sh`):
 
 | Target                                                                              | Time              |
 |-------------------------------------------------------------------------------------|-------------------|
-| (elm-spa-example)[https://github.com/rtfeldman/elm-spa-example] (224kb of Elm code) | 11.2 ms ± 0.5 ms  |
-| my main work repo (12mb of Elm code)                                                | 235.2 ms ± 6.1 ms |
+| (elm-spa-example)[https://github.com/rtfeldman/elm-spa-example] (224kb of Elm code) | 10.6 ms ± 0.6 ms  |
+| my main work repo (12mb of Elm code)                                                | 196.7 ms ± 5.4 ms |
 
-I want this to be much faster.
-The old tool that this is replacing for me does more and runs in `1.210 s ± 0.016 s` on the work repo... and it's written in Python (not that Python is necessarily *slow* but it's probably possible to get a faster result!)
+The standard to meet or exceed here is the tool this is replacing, which runs in `1.210 s ± 0.016 s` on the work repo.
+It does a bit more work than this tool, but scanning+matching is the main part of it.
 
-It would probably also be OK to drop tree-sitter.
-It's not really super essential for this task, since the regex I actually want is tiny: `^import ([A-Z][\w\d\.]+)`
-
-We can probably do better by reducing allocations etc but there are lower-hanging fruit.
+We can probably do better by reducing allocations etc but a 6x speedup is good enough for now.
+I doubt there are many repos in the world as big as the one I'm working with, so I think it should be acceptably performant on smaller repos.
 
 ## Things I've tried
+
+### November 19: Cutting off matches early
+
+The Elm compiler requires imports to be at the top of the file.
+They're usually all in a block, so it's probably fine to stop processing lines once we fail to match after previously matching.
+
+| Target          | Old Time          | New Time          | Speedup                                         |
+|-----------------|-------------------|-------------------|-------------------------------------------------|
+| elm-spa-example | 11.2 ms ± 0.5 ms  | 10.6 ms ± 0.6 ms  | within the margin of error, probably no speedup |
+| work repo       | 235.2 ms ± 6.1 ms | 196.7 ms ± 5.4 ms | ~38ms speedup, 83% of the time.                 |
+
+Seems worth keeping for the larger repo.
 
 ### November 19: Switching to regular expressions
 

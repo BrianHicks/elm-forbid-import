@@ -1,4 +1,4 @@
-# Benchmarks
+# Benchmarking
 
 I'm benchmarking on two repos (see `script/bench.sh`):
 

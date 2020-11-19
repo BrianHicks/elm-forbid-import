@@ -15,7 +15,7 @@ impl ImportFinder {
         ImportFinder { roots }
     }
 
-    pub fn find(&self) -> Result<BTreeMap<String, BTreeSet<PathBuf>>> {
+    pub fn find(&self) -> Result<BTreeMap<String, BTreeSet<FoundImport>>> {
         let mut roots = self.roots.iter();
 
         let first_root = match roots.next() {
@@ -43,7 +43,7 @@ impl ImportFinder {
             .map_err(TreeSitterError::QueryError)
             .context("could not instantiate the import query")?;
 
-        let mut out: BTreeMap<String, BTreeSet<PathBuf>> = BTreeMap::new();
+        let mut out: BTreeMap<String, BTreeSet<FoundImport>> = BTreeMap::new();
 
         for maybe_dir_entry in builder.build() {
             let dir_entry = maybe_dir_entry.context("could not read an entry from a root")?;
@@ -67,11 +67,16 @@ impl ImportFinder {
                         .utf8_text(&source)
                         .context("could not convert a match to a source string")?;
 
+                    let found_import = FoundImport {
+                        path: dir_entry.path().to_path_buf(),
+                        position: capture.node.start_position(),
+                    };
+
                     if let Some(paths) = out.get_mut(import) {
-                        paths.insert(dir_entry.path().to_path_buf());
+                        paths.insert(found_import);
                     } else {
                         let mut paths = BTreeSet::new();
-                        paths.insert(dir_entry.path().to_path_buf());
+                        paths.insert(found_import);
                         out.insert(import.to_owned(), paths);
                     }
                 }
@@ -80,6 +85,12 @@ impl ImportFinder {
 
         Ok(out)
     }
+}
+
+#[derive(PartialEq, Eq, PartialOrd, Ord)]
+pub struct FoundImport {
+    pub path: PathBuf,
+    pub position: tree_sitter::Point,
 }
 
 // tree sitter

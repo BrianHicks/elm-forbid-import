@@ -1,5 +1,6 @@
 use anyhow::{anyhow, Context, Result};
-use serde::{Deserialize, Serialize};
+use serde::ser::SerializeStruct;
+use serde::{Deserialize, Serialize, Serializer};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::{self, Display};
 use std::fs;
@@ -158,7 +159,10 @@ impl Store {
 
         for (import, existing) in self.forbidden.iter_mut() {
             existing.usages = match imports_to_files.get(import) {
-                Some(new_usages) => new_usages.to_owned(),
+                Some(new_usages) => new_usages
+                    .iter()
+                    .map(|found| found.path.to_owned())
+                    .collect(),
                 None => BTreeSet::new(),
             }
         }
@@ -173,10 +177,22 @@ impl Store {
         let mut out = Vec::new();
 
         for (import, existing) in self.forbidden.iter() {
-            if let Some(new_usages) = imports_to_files.get(import) {
+            if let Some(found_imports) = imports_to_files.get(import) {
+                let new_usages = found_imports
+                    .iter()
+                    .map(|found| found.path.to_owned())
+                    .collect::<BTreeSet<PathBuf>>();
+
+                let mut to_positions: BTreeMap<&PathBuf, tree_sitter::Point> = BTreeMap::new();
+
+                for import in found_imports.iter() {
+                    to_positions.insert(&import.path, import.position);
+                }
+
                 for file in new_usages.difference(&existing.usages) {
                     out.push(CheckResult {
                         file: file.to_path_buf(),
+                        position: to_positions.get(file).map(|p| Point(*p)),
                         import: import.to_string(),
                         error_location: ErrorLocation::InElmSource {
                             hint: existing.hint.as_ref(),
@@ -184,9 +200,10 @@ impl Store {
                     });
                 }
 
-                for file in existing.usages.difference(new_usages) {
+                for file in existing.usages.difference(&new_usages) {
                     out.push(CheckResult {
                         file: file.to_path_buf(),
+                        position: None,
                         import: import.to_string(),
                         error_location: ErrorLocation::InConfig,
                     })
@@ -197,7 +214,7 @@ impl Store {
         Ok(out)
     }
 
-    pub fn scan(&mut self) -> Result<BTreeMap<String, BTreeSet<PathBuf>>> {
+    pub fn scan(&mut self) -> Result<BTreeMap<String, BTreeSet<importfinder::FoundImport>>> {
         let mut absolute_roots = BTreeSet::new();
 
         for root in self.roots.iter() {
@@ -213,8 +230,30 @@ impl Store {
 #[derive(Debug, Serialize)]
 pub struct CheckResult<'a> {
     file: PathBuf,
+    position: Option<Point>,
     import: String,
     error_location: ErrorLocation<'a>,
+}
+
+#[derive(Debug)]
+pub struct Point(tree_sitter::Point);
+
+impl Serialize for Point {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut state = serializer.serialize_struct("Color", 2)?;
+        state.serialize_field("row", &self.0.row)?;
+        state.serialize_field("column", &self.0.column)?;
+        state.end()
+    }
+}
+
+impl Display for Point {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}:{}", self.0.row, self.0.column)
+    }
 }
 
 #[derive(Debug, PartialEq, Serialize)]
@@ -238,17 +277,24 @@ impl Display for CheckResult<'_> {
                     Some(an_actual_hint) => format!(" ({})", an_actual_hint),
                     None => String::new(),
                 };
+
+                let position_string = match &self.position {
+                    Some(position) => format!(":{}", position),
+                    None => String::new(),
+                };
+
                 write!(
                     f,
-                    "{} imports {}{}",
+                    "{}{}:forbidden import {}{}",
                     self.file.to_str().unwrap_or("<unprintable file path>"),
+                    position_string,
                     self.import,
                     hint_string,
                 )
             }
             ErrorLocation::InConfig => write!(
                 f,
-                "{} used to import {}, but no longer!",
+                "{}: removed forbidden import {}! (Run me with `update` to fix this.)",
                 self.file.to_str().unwrap_or("<unprintable file path>"),
                 self.import,
             ),

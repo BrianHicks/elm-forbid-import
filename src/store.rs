@@ -220,6 +220,11 @@ impl Store {
             absolute_roots.insert(self.absolute_from_config_path(root.to_owned())?);
         }
 
+        if absolute_roots.is_empty() {
+            absolute_roots
+                .insert(std::env::current_dir().context("could not get current directory")?);
+        }
+
         let finder = importfinder::ImportFinder::new(absolute_roots);
 
         finder.find()

@@ -156,11 +156,17 @@ impl Store {
             .scan()
             .context("could not scan the project roots for Elm files")?;
 
+        let current_dir =
+            std::env::current_dir().context("could not get current working directory")?;
+
         for (import, existing) in self.forbidden.iter_mut() {
             existing.usages = match imports_to_files.get(import) {
                 Some(new_usages) => new_usages
                     .iter()
-                    .map(|found| found.path.to_owned())
+                    .map(|found| {
+                        pathdiff::diff_paths(&found.path, &current_dir)
+                            .unwrap_or_else(|| found.path.to_owned())
+                    })
                     .collect(),
                 None => BTreeSet::new(),
             }

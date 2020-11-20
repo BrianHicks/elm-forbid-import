@@ -56,7 +56,15 @@ nix-env -if https://git.bytes.zone/brian/elm-forbid-import/archive/main.tar.gz
 If you don't want to install globally, check out this repo and run `nix-build` inside it.
 If you've got a rust toolchain set up, `cargo build` in the root directory should also work.
 
-## Frequently Asked Questions
+## Q&A
+
+### How can I get these results in my editor?
+
+Most editors can parse something that looks like `filename:row:column:message`.
+That's this tool's default output, but if your editor doesn't like the additional message for the human at the bottom, use `--format editor` to get *only* that output.
+
+If your editor requires another form of output, use `--format json` to get structured output which can be reformatted however you like.
+If that's not enough, please [let me know](mailto:brian@brianthicks.com).
 
 ### How can I check multiple source roots with this tool?
 

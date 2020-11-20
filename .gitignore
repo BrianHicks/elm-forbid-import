@@ -1,3 +1,4 @@
 /forbidden-imports.toml
 /result
 /target
+/tests/golden-results/*.current

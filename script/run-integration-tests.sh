@@ -2,11 +2,9 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-if test -d target/debug; then
+if ! command -v elm-forbid-import; then
   cargo build
-  BIN_PATH="$(pwd)/target/debug"
-elif test -d target/release; then
-  BIN_PATH="$(pwd)/target/release"
+  PATH="$(pwd)/target/debug:$PATH"
 fi
 
 mkdir tmp
@@ -24,7 +22,7 @@ run_test() {
   CURRENT="$GOLDEN.current"
 
   echo "===== $NAME"
-  env PATH="$BIN_PATH:$PATH" ELM_FORBID_IMPORT_CONFIG="tmp/forbidden-imports.toml" bash -xeou pipefail "$TEST_FILE" > "$CURRENT"
+  env ELM_FORBID_IMPORT_CONFIG="tmp/forbidden-imports.toml" bash -xeou pipefail "$TEST_FILE" > "$CURRENT"
 
   if ! test -e "$GOLDEN"; then
     cp "$CURRENT" "$GOLDEN"

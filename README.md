@@ -1,4 +1,4 @@
-# elm-forbid-imports
+# elm-forbid-import
 
 This tool is based on the realization that we often intend to deprecate some import (say, to upgrade from `Regex` to `Parser` or from `Html` to `Html.Styled`) but we can't do it all *right now*—these can be big projects!
 

@@ -94,17 +94,16 @@ impl Store {
         }
     }
 
-    fn absolute_from_config_path(&self, path: PathBuf) -> Result<PathBuf> {
+    fn absolute_config_parent_path(&self) -> Result<PathBuf> {
         match self.config_path.parent() {
             Some(parent) => {
-                let out = parent.join(&path).canonicalize().with_context(|| {
-                    format!(
-                        "could not make an absolute path with the config file and {}",
-                        path.display()
-                    )
-                })?;
-
-                Ok(out)
+                if parent.as_os_str().is_empty() {
+                    std::env::current_dir().context("could not get the current working directory")
+                } else {
+                    parent
+                        .canonicalize()
+                        .context("could not make an absolute path to the config's parent directory")
+                }
             }
 
             None => Err(anyhow!(
@@ -112,6 +111,18 @@ impl Store {
                 self.config_path.display(),
             )),
         }
+    }
+
+    fn absolute_from_config_path(&self, path: PathBuf) -> Result<PathBuf> {
+        self.absolute_config_parent_path()?
+            .join(&path)
+            .canonicalize()
+            .with_context(|| {
+                format!(
+                    "could not make an absolute path with the config file and {}",
+                    path.display()
+                )
+            })
     }
 
     pub fn add_root(&mut self, path: PathBuf) -> Result<()> {
@@ -156,20 +167,17 @@ impl Store {
             .scan()
             .context("could not scan the project roots for Elm files")?;
 
-        let current_dir =
-            std::env::current_dir().context("could not get current working directory")?;
+        let parent_path = self
+            .absolute_config_parent_path()
+            .context("could not get parent path to write new usages")?;
 
-        for (import, existing) in self.forbidden.iter_mut() {
-            existing.usages = match imports_to_files.get(import) {
-                Some(new_usages) => new_usages
+        for (import, value) in self.forbidden.iter_mut() {
+            if let Some(new_usages) = imports_to_files.get(import) {
+                value.usages = new_usages
                     .iter()
-                    .map(|found| {
-                        pathdiff::diff_paths(&found.path, &current_dir)
-                            .unwrap_or_else(|| found.path.to_owned())
-                    })
-                    .collect(),
-                None => BTreeSet::new(),
-            }
+                    .flat_map(|usage| pathdiff::diff_paths(&usage.path, &parent_path))
+                    .collect()
+            };
         }
 
         Ok(())
@@ -219,7 +227,7 @@ impl Store {
         Ok(out)
     }
 
-    pub fn scan(&mut self) -> Result<BTreeMap<String, BTreeSet<importfinder::FoundImport>>> {
+    pub fn scan(&self) -> Result<BTreeMap<String, BTreeSet<importfinder::FoundImport>>> {
         let mut absolute_roots = BTreeSet::new();
 
         for root in self.roots.iter() {

@@ -2,11 +2,20 @@
 set -euo pipefail
 IFS=$'\n\t'
 
+if test -d target/debug; then
+  cargo build
+  BIN_PATH="$(pwd)/target/debug"
+elif test -d target/release; then
+  BIN_PATH="$(pwd)/target/release"
+fi
+
 mkdir tmp
 trap 'rm -rf tmp' EXIT
 
 run_test() {
-  rm -r tmp/forbidden-imports.toml
+  if test -f tmp/forbidden-imports.toml; then
+    rm tmp/forbidden-imports.toml
+  fi
 
   TEST_FILE="${1:-}"
   NAME="$(basename "$TEST_FILE")"
@@ -15,7 +24,7 @@ run_test() {
   CURRENT="$GOLDEN.current"
 
   echo "===== $NAME"
-  env PATH="$(pwd)/target/debug:$PATH" ELM_FORBID_IMPORT_CONFIG="tmp/forbidden-imports.toml" bash -xeou pipefail "$TEST_FILE" > "$CURRENT"
+  env PATH="$BIN_PATH:$PATH" ELM_FORBID_IMPORT_CONFIG="tmp/forbidden-imports.toml" bash -xeou pipefail "$TEST_FILE" > "$CURRENT"
 
   if ! test -e "$GOLDEN"; then
     cp "$CURRENT" "$GOLDEN"
@@ -23,8 +32,6 @@ run_test() {
 
   diff -U 0 "$GOLDEN" "$CURRENT"
 }
-
-cargo build
 
 EXIT=0
 

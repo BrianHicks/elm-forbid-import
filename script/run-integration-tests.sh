@@ -12,6 +12,10 @@ run_test() {
   echo "===== $NAME"
   env PATH="$(pwd)/target/debug:$PATH" bash -xeou pipefail "$TEST_FILE" > "$CURRENT"
 
+  if ! test -e "$GOLDEN"; then
+    cp "$CURRENT" "$GOLDEN"
+  fi
+
   diff -U 0 "$GOLDEN" "$CURRENT"
 }
 

@@ -67,9 +67,10 @@ enum Mode {
     Check,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 enum Format {
     Human,
+    Editor,
     JSON,
 }
 
@@ -79,6 +80,7 @@ impl std::str::FromStr for Format {
     fn from_str(input: &str) -> Result<Format, BadFormat> {
         match input {
             "human" => Ok(Format::Human),
+            "editor" => Ok(Format::Editor),
             "json" => Ok(Format::JSON),
             _ => Err(BadFormat {}),
         }
@@ -174,7 +176,7 @@ fn run(opts: Options) -> Result<i32> {
                         Ok(1)
                     }
                 }
-                Format::Human => {
+                _ => {
                     let all_in_config =
                         !results.is_empty() && results.iter().all(|item| item.error_is_in_config());
 
@@ -182,15 +184,15 @@ fn run(opts: Options) -> Result<i32> {
                         println!("{}", result);
                     }
 
-                    if all_in_config {
-                        println!(
-                    "\nIt looks like you removed some forbidden imports. Good job! To update the config\nand remove this error, just run me with the `update` command!"
-                );
-                        Ok(1)
-                    } else if !results.is_empty() {
-                        println!(
-                    "\nIf these are too much to handle right now (or you intended to import a forbidden\nmodule), please run me with the `update` command!"
-                );
+                    if opts.format == Format::Human {
+                        if all_in_config {
+                            println!( "\nIt looks like you removed some forbidden imports. Good job! To update the config\nand remove this error, just run me with the `update` command!" );
+                        } else if !results.is_empty() {
+                            println!( "\nIf these are too much to handle right now (or you intended to import a forbidden\nmodule), please run me with the `update` command!" );
+                        }
+                    }
+
+                    if !results.is_empty() {
                         Ok(1)
                     } else {
                         Ok(0)

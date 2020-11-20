@@ -249,6 +249,11 @@ impl CheckResult<'_> {
 
 impl Display for CheckResult<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let nice_path = std::env::current_dir()
+            .ok()
+            .and_then(|pwd| pathdiff::diff_paths(&self.file, &pwd))
+            .unwrap_or(self.file.to_owned());
+
         match self.error_location {
             ErrorLocation::InElmSource { hint } => {
                 let hint_string = match hint {
@@ -264,7 +269,7 @@ impl Display for CheckResult<'_> {
                 write!(
                     f,
                     "{}{}:forbidden import {}{}",
-                    self.file.to_str().unwrap_or("<unprintable file path>"),
+                    nice_path.display(),
                     position_string,
                     self.import,
                     hint_string,
@@ -273,7 +278,7 @@ impl Display for CheckResult<'_> {
             ErrorLocation::InConfig => write!(
                 f,
                 "{}: removed forbidden import {}! (Run me with `update` to fix this.)",
-                self.file.to_str().unwrap_or("<unprintable file path>"),
+                nice_path.display(),
                 self.import,
             ),
         }

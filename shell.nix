@@ -19,5 +19,8 @@ stdenv.mkDerivation {
 
     # Benchmarking + Optimization
     hyperfine
+
+    # Testing
+    jq
   ];
 }

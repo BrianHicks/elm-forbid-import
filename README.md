@@ -133,4 +133,5 @@ In particular, I've worked with Elm for a long time and would be happy to advise
 
 ## License
 
-TODO. Probably BSD 3-Clause to match the rest of the Elm community stuff, but I have to make sure that's compatible with the dependencies I'm using.
+BSD 3-Clause.
+See [LICENSE](LICENSE).

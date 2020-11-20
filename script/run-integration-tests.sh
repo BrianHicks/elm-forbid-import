@@ -6,7 +6,7 @@ mkdir tmp
 trap 'rm -rf tmp' EXIT
 
 run_test() {
-  rm tmp/forbidden-imports.toml
+  rm -r tmp/forbidden-imports.toml
 
   TEST_FILE="${1:-}"
   NAME="$(basename "$TEST_FILE")"

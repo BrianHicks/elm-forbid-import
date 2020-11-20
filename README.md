@@ -50,7 +50,7 @@ If you've got a rust toolchain set up, `cargo build` in the root directory shoul
 
 - [x] Persist other parts of the config, like the roots.
 - [x] Parallel crawling in large projects
-- [ ] Look in all the `source-directories` in any specified `elm.json`s
+- [x] Look in all the `source-directories` in any specified `elm.json`s
 - [ ] Add golden tests to cover usage patterns
 - [ ] Make sure the README looks really nice
 - [ ] Figure out licensing

@@ -2,7 +2,7 @@ use anyhow::{bail, Context, Result};
 use crossbeam::channel;
 use lazy_static::lazy_static;
 use regex::Regex;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::PathBuf;
@@ -16,17 +16,37 @@ impl ImportFinder {
         ImportFinder { roots }
     }
 
-    fn builder(&self) -> Result<ignore::WalkBuilder> {
-        let mut roots = self.roots.iter();
+    fn source_directories(&self) -> Result<BTreeSet<PathBuf>> {
+        let mut out = BTreeSet::new();
 
-        let first_root = match roots.next() {
-            None => bail!("could not find imports, because there were no roots to examine"),
+        for root in self.roots.iter() {
+            let source = fs::read(root.join("elm.json"))?;
+            let elm_json: ElmJson = serde_json::from_slice(&source)?;
+
+            for dir in elm_json.source_directories {
+                out.insert(root.join(dir));
+            }
+        }
+
+        Ok(out)
+    }
+
+    fn builder(&self) -> Result<ignore::WalkBuilder> {
+        let source_directories = self
+            .source_directories()
+            .context("could not get the source directories for project roots")?;
+        let mut source_directories = source_directories.iter();
+
+        let first_source_directory = match source_directories.next() {
+            None => {
+                bail!("could not find imports, because there were no source directories to examine")
+            }
             Some(root) => root,
         };
 
-        let mut builder = ignore::WalkBuilder::new(first_root);
-        for root in roots {
-            builder.add(root);
+        let mut builder = ignore::WalkBuilder::new(first_source_directory);
+        for source_directory in source_directories {
+            builder.add(source_directory);
         }
 
         builder.standard_filters(true);
@@ -171,4 +191,10 @@ pub struct FoundImport {
 pub struct Position {
     pub row: usize,
     pub column: usize,
+}
+
+#[derive(Debug, Deserialize)]
+struct ElmJson {
+    #[serde(rename = "source-directories")]
+    source_directories: Vec<PathBuf>,
 }

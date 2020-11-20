@@ -252,7 +252,7 @@ impl Display for CheckResult<'_> {
         let nice_path = std::env::current_dir()
             .ok()
             .and_then(|pwd| pathdiff::diff_paths(&self.file, &pwd))
-            .unwrap_or(self.file.to_owned());
+            .unwrap_or_else(|| self.file.to_owned());
 
         match self.error_location {
             ErrorLocation::InElmSource { hint } => {

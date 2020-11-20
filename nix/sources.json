@@ -1,4 +1,16 @@
 {
+    "cargo-lichking": {
+        "branch": "master",
+        "description": "Automated license checking for rust. cargo lichking is a Cargo subcommand that checks licensing information for dependencies.",
+        "homepage": "",
+        "owner": "Nemo157",
+        "repo": "cargo-lichking",
+        "rev": "4cd86f04c8a17e9f6b3dc1079ef7edbc7fa584ed",
+        "sha256": "151p5mxmpnvk3c202qdbc19qib35q9cbc0446999l8gf06hwjmbj",
+        "type": "tarball",
+        "url": "https://github.com/Nemo157/cargo-lichking/archive/4cd86f04c8a17e9f6b3dc1079ef7edbc7fa584ed.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
     "gitignore": {
         "branch": "master",
         "description": "Nix function for filtering local git sources",

@@ -19,8 +19,10 @@ struct Options {
     )]
     config_path: PathBuf,
 
-    /// How do you want the results presented? Only really useful if you
-    /// want JSON output to reformat for an external system.
+    /// How do you want the results presented? Only really useful if you're a
+    /// computer calling this script. If you're an editor, try the `editor` for
+    /// line info without the human-readable action message at the bottom. If
+    /// you're not, try the `json` output. Delicious!
     #[clap(long, env("ELM_FORBID_IMPORT_FORMAT"), default_value = "human")]
     format: Format,
 

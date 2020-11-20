@@ -30,15 +30,19 @@ impl ImportFinder {
         }
 
         builder.standard_filters(true);
+        builder.types(self.elm_types()?);
 
+        Ok(builder)
+    }
+
+    fn elm_types(&self) -> Result<ignore::types::Types> {
         let types = ignore::types::TypesBuilder::new()
             .add_defaults()
             .select("elm")
             .build()
             .context("could not build extensions to scan for")?;
-        builder.types(types);
 
-        Ok(builder)
+        Ok(types)
     }
 
     pub fn find(&self) -> Result<BTreeMap<String, BTreeSet<FoundImport>>> {

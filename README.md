@@ -120,6 +120,10 @@ This tool is intentionally limited in scope, but you may have ideas for things t
 
 If you're a more experience Rust user, I would also appreciate pointers of how to make this code more idiomatic or faster.
 
+If you're going to work on this codebase, you'll need to set up `nix` and `direnv`.
+Then run `direnv allow` in this directory to get all the tools.
+If you run into missing dependencies, please let me know and I'll add them to the configuration!
+
 ## Climate Action
 
 I want my open-source activities to support projects addressing the climate crisis (for example, projects in clean energy, public transit, reforestation, or sustainable agriculture.)

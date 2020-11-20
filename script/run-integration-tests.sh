@@ -16,7 +16,15 @@ run_test() {
 }
 
 cargo build
-find tests/integration -type f -name '*.sh' | while read -r TEST_FILE; do
+
+EXIT=0
+
+for TEST_FILE in $(find tests/integration -type f -name '*.sh'); do
+  set +e
   run_test "$TEST_FILE"
+  if test "$?" != "0"; then EXIT=1; fi
+  set -e
   echo
 done
+
+exit "$EXIT"

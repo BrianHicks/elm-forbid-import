@@ -88,7 +88,7 @@ impl Store {
                 )),
             },
             None => Err(anyhow!(
-                "root config path ({}) does not have a parent.",
+                "config path ({}) does not have a parent.",
                 self.config_path.display()
             )),
         }
@@ -108,7 +108,7 @@ impl Store {
             }
 
             None => Err(anyhow!(
-                "root config path ({}) does not have a parent.",
+                "config path ({}) does not have a parent.",
                 self.config_path.display(),
             )),
         }
@@ -117,7 +117,7 @@ impl Store {
     pub fn add_root(&mut self, path: PathBuf) -> Result<()> {
         self.roots.insert(
             self.relative_to_config_path(path)
-                .context("could not find a path from the config file to the new root")?,
+                .context("could not find a path from the config file to the new project root")?,
         );
 
         Ok(())
@@ -125,9 +125,9 @@ impl Store {
 
     pub fn remove_root(&mut self, path: PathBuf) -> Result<()> {
         self.roots.remove(
-            &self
-                .relative_to_config_path(path)
-                .context("could not find a path from the config file to the root to remove")?,
+            &self.relative_to_config_path(path).context(
+                "could not find a path from the config file to the project root to remove",
+            )?,
         );
 
         Ok(())
@@ -154,7 +154,7 @@ impl Store {
     pub fn update(&mut self) -> Result<()> {
         let imports_to_files = self
             .scan()
-            .context("could not scan the roots for Elm files")?;
+            .context("could not scan the project roots for Elm files")?;
 
         for (import, existing) in self.forbidden.iter_mut() {
             existing.usages = match imports_to_files.get(import) {
@@ -172,7 +172,7 @@ impl Store {
     pub fn check(&mut self) -> Result<Vec<CheckResult>> {
         let imports_to_files = self
             .scan()
-            .context("could not scan the roots for Elm files")?;
+            .context("could not scan the project roots for Elm files")?;
         let mut out = Vec::new();
 
         for (import, existing) in self.forbidden.iter() {

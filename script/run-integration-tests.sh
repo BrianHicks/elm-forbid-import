@@ -3,6 +3,8 @@ set -euo pipefail
 IFS=$'\n\t'
 
 run_test() {
+  rm -r forbidden-imports.toml
+
   TEST_FILE="${1:-}"
   NAME="$(basename "$TEST_FILE")"
 

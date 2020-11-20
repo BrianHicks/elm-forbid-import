@@ -190,7 +190,7 @@ impl Store {
 
                 for file in new_usages.difference(&existing.usages) {
                     out.push(CheckResult {
-                        file: file.to_path_buf(),
+                        path: file.to_path_buf(),
                         position: to_positions.get(file).copied(),
                         import: import.to_string(),
                         error_location: ErrorLocation::InElmSource {
@@ -201,7 +201,7 @@ impl Store {
 
                 for file in existing.usages.difference(&new_usages) {
                     out.push(CheckResult {
-                        file: file.to_path_buf(),
+                        path: file.to_path_buf(),
                         position: None,
                         import: import.to_string(),
                         error_location: ErrorLocation::InConfig,
@@ -233,7 +233,7 @@ impl Store {
 
 #[derive(Debug, Serialize)]
 pub struct CheckResult<'a> {
-    file: PathBuf,
+    path: PathBuf,
     position: Option<importfinder::Position>,
     import: String,
     error_location: ErrorLocation<'a>,
@@ -252,13 +252,17 @@ impl CheckResult<'_> {
     }
 }
 
+impl CheckResult<'_> {
+    pub fn relative_path(&self) -> PathBuf {
+        std::env::current_dir()
+            .ok()
+            .and_then(|cwd| pathdiff::diff_paths(&self.path, &cwd))
+            .unwrap_or_else(|| self.path.to_owned())
+    }
+}
+
 impl Display for CheckResult<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let nice_path = std::env::current_dir()
-            .ok()
-            .and_then(|pwd| pathdiff::diff_paths(&self.file, &pwd))
-            .unwrap_or_else(|| self.file.to_owned());
-
         match self.error_location {
             ErrorLocation::InElmSource { hint } => {
                 let hint_string = match hint {
@@ -274,7 +278,7 @@ impl Display for CheckResult<'_> {
                 write!(
                     f,
                     "{}{}:forbidden import {}{}",
-                    nice_path.display(),
+                    self.relative_path().display(),
                     position_string,
                     self.import,
                     hint_string,
@@ -283,7 +287,7 @@ impl Display for CheckResult<'_> {
             ErrorLocation::InConfig => write!(
                 f,
                 "{}: removed forbidden import {}! (Run me with `update` to fix this.)",
-                nice_path.display(),
+                self.relative_path().display(),
                 self.import,
             ),
         }

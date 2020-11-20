@@ -2,8 +2,11 @@
 set -euo pipefail
 IFS=$'\n\t'
 
+mkdir tmp
+trap 'rm -rf tmp' EXIT
+
 run_test() {
-  rm -r forbidden-imports.toml
+  rm tmp/forbidden-imports.toml
 
   TEST_FILE="${1:-}"
   NAME="$(basename "$TEST_FILE")"
@@ -12,7 +15,7 @@ run_test() {
   CURRENT="$GOLDEN.current"
 
   echo "===== $NAME"
-  env PATH="$(pwd)/target/debug:$PATH" bash -xeou pipefail "$TEST_FILE" > "$CURRENT"
+  env PATH="$(pwd)/target/debug:$PATH" ELM_FORBID_IMPORT_CONFIG="tmp/forbidden-imports.toml" bash -xeou pipefail "$TEST_FILE" > "$CURRENT"
 
   if ! test -e "$GOLDEN"; then
     cp "$CURRENT" "$GOLDEN"

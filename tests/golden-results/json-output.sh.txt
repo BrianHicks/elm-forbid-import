@@ -1,0 +1,288 @@
+[
+  {
+    "file": "vendor/elm-spa-example/src/Article/Body.elm",
+    "position": {
+      "row": 3,
+      "column": 7
+    },
+    "import": "Html",
+    "error_location": {
+      "in_elm_source": {
+        "hint": "use Html.Styled"
+      }
+    }
+  },
+  {
+    "file": "vendor/elm-spa-example/src/Article/Feed.elm",
+    "position": {
+      "row": 9,
+      "column": 7
+    },
+    "import": "Html",
+    "error_location": {
+      "in_elm_source": {
+        "hint": "use Html.Styled"
+      }
+    }
+  },
+  {
+    "file": "vendor/elm-spa-example/src/Article.elm",
+    "position": {
+      "row": 20,
+      "column": 7
+    },
+    "import": "Html",
+    "error_location": {
+      "in_elm_source": {
+        "hint": "use Html.Styled"
+      }
+    }
+  },
+  {
+    "file": "vendor/elm-spa-example/src/Asset.elm",
+    "position": {
+      "row": 10,
+      "column": 7
+    },
+    "import": "Html",
+    "error_location": {
+      "in_elm_source": {
+        "hint": "use Html.Styled"
+      }
+    }
+  },
+  {
+    "file": "vendor/elm-spa-example/src/Author.elm",
+    "position": {
+      "row": 36,
+      "column": 7
+    },
+    "import": "Html",
+    "error_location": {
+      "in_elm_source": {
+        "hint": "use Html.Styled"
+      }
+    }
+  },
+  {
+    "file": "vendor/elm-spa-example/src/Avatar.elm",
+    "position": {
+      "row": 4,
+      "column": 7
+    },
+    "import": "Html",
+    "error_location": {
+      "in_elm_source": {
+        "hint": "use Html.Styled"
+      }
+    }
+  },
+  {
+    "file": "vendor/elm-spa-example/src/Loading.elm",
+    "position": {
+      "row": 7,
+      "column": 7
+    },
+    "import": "Html",
+    "error_location": {
+      "in_elm_source": {
+        "hint": "use Html.Styled"
+      }
+    }
+  },
+  {
+    "file": "vendor/elm-spa-example/src/Main.elm",
+    "position": {
+      "row": 8,
+      "column": 7
+    },
+    "import": "Html",
+    "error_location": {
+      "in_elm_source": {
+        "hint": "use Html.Styled"
+      }
+    }
+  },
+  {
+    "file": "vendor/elm-spa-example/src/Page/Article/Editor.elm",
+    "position": {
+      "row": 9,
+      "column": 7
+    },
+    "import": "Html",
+    "error_location": {
+      "in_elm_source": {
+        "hint": "use Html.Styled"
+      }
+    }
+  },
+  {
+    "file": "vendor/elm-spa-example/src/Page/Article.elm",
+    "position": {
+      "row": 16,
+      "column": 7
+    },
+    "import": "Html",
+    "error_location": {
+      "in_elm_source": {
+        "hint": "use Html.Styled"
+      }
+    }
+  },
+  {
+    "file": "vendor/elm-spa-example/src/Page/Blank.elm",
+    "position": {
+      "row": 3,
+      "column": 7
+    },
+    "import": "Html",
+    "error_location": {
+      "in_elm_source": {
+        "hint": "use Html.Styled"
+      }
+    }
+  },
+  {
+    "file": "vendor/elm-spa-example/src/Page/Home.elm",
+    "position": {
+      "row": 12,
+      "column": 7
+    },
+    "import": "Html",
+    "error_location": {
+      "in_elm_source": {
+        "hint": "use Html.Styled"
+      }
+    }
+  },
+  {
+    "file": "vendor/elm-spa-example/src/Page/Login.elm",
+    "position": {
+      "row": 8,
+      "column": 7
+    },
+    "import": "Html",
+    "error_location": {
+      "in_elm_source": {
+        "hint": "use Html.Styled"
+      }
+    }
+  },
+  {
+    "file": "vendor/elm-spa-example/src/Page/NotFound.elm",
+    "position": {
+      "row": 4,
+      "column": 7
+    },
+    "import": "Html",
+    "error_location": {
+      "in_elm_source": {
+        "hint": "use Html.Styled"
+      }
+    }
+  },
+  {
+    "file": "vendor/elm-spa-example/src/Page/Profile.elm",
+    "position": {
+      "row": 12,
+      "column": 7
+    },
+    "import": "Html",
+    "error_location": {
+      "in_elm_source": {
+        "hint": "use Html.Styled"
+      }
+    }
+  },
+  {
+    "file": "vendor/elm-spa-example/src/Page/Register.elm",
+    "position": {
+      "row": 5,
+      "column": 7
+    },
+    "import": "Html",
+    "error_location": {
+      "in_elm_source": {
+        "hint": "use Html.Styled"
+      }
+    }
+  },
+  {
+    "file": "vendor/elm-spa-example/src/Page/Settings.elm",
+    "position": {
+      "row": 8,
+      "column": 7
+    },
+    "import": "Html",
+    "error_location": {
+      "in_elm_source": {
+        "hint": "use Html.Styled"
+      }
+    }
+  },
+  {
+    "file": "vendor/elm-spa-example/src/Page.elm",
+    "position": {
+      "row": 6,
+      "column": 7
+    },
+    "import": "Html",
+    "error_location": {
+      "in_elm_source": {
+        "hint": "use Html.Styled"
+      }
+    }
+  },
+  {
+    "file": "vendor/elm-spa-example/src/PaginatedList.elm",
+    "position": {
+      "row": 3,
+      "column": 7
+    },
+    "import": "Html",
+    "error_location": {
+      "in_elm_source": {
+        "hint": "use Html.Styled"
+      }
+    }
+  },
+  {
+    "file": "vendor/elm-spa-example/src/Route.elm",
+    "position": {
+      "row": 5,
+      "column": 7
+    },
+    "import": "Html",
+    "error_location": {
+      "in_elm_source": {
+        "hint": "use Html.Styled"
+      }
+    }
+  },
+  {
+    "file": "vendor/elm-spa-example/src/Timestamp.elm",
+    "position": {
+      "row": 3,
+      "column": 7
+    },
+    "import": "Html",
+    "error_location": {
+      "in_elm_source": {
+        "hint": "use Html.Styled"
+      }
+    }
+  },
+  {
+    "file": "vendor/elm-spa-example/src/Username.elm",
+    "position": {
+      "row": 3,
+      "column": 7
+    },
+    "import": "Html",
+    "error_location": {
+      "in_elm_source": {
+        "hint": "use Html.Styled"
+      }
+    }
+  }
+]

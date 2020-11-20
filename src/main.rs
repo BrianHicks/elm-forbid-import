@@ -11,12 +11,17 @@ mod store;
 struct Options {
     /// The file where we'll store configuration about forbidden imports
     /// and todos.
-    #[clap(short('c'), long("config"), default_value = "forbidden-imports.toml")]
+    #[clap(
+        short('c'),
+        long("config"),
+        env("ELM_FORBID_IMPORT_CONFIG"),
+        default_value = "forbidden-imports.toml"
+    )]
     config_path: PathBuf,
 
     /// How do you want the results presented? Only really useful if you
     /// want JSON output to reformat for an external system.
-    #[clap(long, default_value = "human")]
+    #[clap(long, env("ELM_FORBID_IMPORT_FORMAT"), default_value = "human")]
     format: Format,
 
     #[clap(subcommand)]

@@ -21,14 +21,26 @@ run_test() {
   GOLDEN="tests/golden-results/$NAME.txt"
   CURRENT="$GOLDEN.current"
 
+  GOLDEN_CONFIG="tests/golden-results/$NAME.config.toml"
+  CURRENT_CONFIG="$GOLDEN_CONFIG.current"
+
   echo "===== $NAME"
   env ELM_FORBID_IMPORT_CONFIG="tmp/forbidden-imports.toml" bash -xeou pipefail "$TEST_FILE" > "$CURRENT"
+  mv tmp/forbidden-imports.toml "$CURRENT_CONFIG"
 
   if ! test -e "$GOLDEN"; then
     cp "$CURRENT" "$GOLDEN"
   fi
 
+  if ! test -e "$GOLDEN_CONFIG"; then
+    cp "$CURRENT_CONFIG" "$GOLDEN_CONFIG"
+  fi
+
+  echo "----- diffing output"
   diff -U 0 "$GOLDEN" "$CURRENT"
+
+  echo '----- diffing config'
+  diff -U 0 "$GOLDEN_CONFIG" "$CURRENT_CONFIG"
 }
 
 EXIT=0

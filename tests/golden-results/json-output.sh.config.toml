@@ -1,0 +1,6 @@
+# WARNING: this file is managed with `elm-forbid-imports`. Manual edits will
+# be overwritten!
+
+roots = ['../vendor/elm-spa-example']
+[forbidden.Html]
+hint = 'use Html.Styled'

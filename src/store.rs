@@ -187,19 +187,26 @@ impl Store {
         let imports_to_files = self
             .scan()
             .context("could not scan the project roots for Elm files")?;
+
+        let parent_path = self
+            .absolute_config_parent_path()
+            .context("could not get parent path to check for new usages")?;
+
         let mut out = Vec::new();
 
         for (import, existing) in self.forbidden.iter() {
             if let Some(found_imports) = imports_to_files.get(import) {
                 let new_usages = found_imports
                     .iter()
-                    .map(|found| found.path.to_owned())
+                    .flat_map(|found| pathdiff::diff_paths(&found.path, &parent_path))
                     .collect::<BTreeSet<PathBuf>>();
 
-                let mut to_positions: BTreeMap<&PathBuf, importfinder::Position> = BTreeMap::new();
+                let mut to_positions: BTreeMap<PathBuf, importfinder::Position> = BTreeMap::new();
 
                 for import in found_imports.iter() {
-                    to_positions.insert(&import.path, import.position);
+                    if let Some(p) = pathdiff::diff_paths(&import.path, &parent_path) {
+                        to_positions.insert(p, import.position);
+                    }
                 }
 
                 for file in new_usages.difference(&existing.usages) {

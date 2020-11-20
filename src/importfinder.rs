@@ -60,8 +60,7 @@ impl ImportFinder {
                 {
                     Ok(de) => de,
                     Err(err) => {
-                        #[allow(unused_must_use)]
-                        let _ = error_sender.send(err);
+                        error_sender.send(err).unwrap();
                         return ignore::WalkState::Quit;
                     }
                 };
@@ -75,8 +74,7 @@ impl ImportFinder {
                     match fs::read(dir_entry.path()).context("could not read an Elm file") {
                         Ok(s) => s,
                         Err(err) => {
-                            #[allow(unused_must_use)]
-                            let _ = error_sender.send(err);
+                            error_sender.send(err).unwrap();
                             return ignore::WalkState::Quit;
                         }
                     };
@@ -86,8 +84,7 @@ impl ImportFinder {
                 {
                     Ok(s) => s,
                     Err(err) => {
-                        #[allow(unused_must_use)]
-                        let _ = error_sender.send(err);
+                        error_sender.send(err).unwrap();
                         return ignore::WalkState::Quit;
                     }
                 };
@@ -117,8 +114,7 @@ impl ImportFinder {
                                     column: import_module.start(),
                                 },
                             }) {
-                                #[allow(unused_must_use)]
-                                let _ = error_sender.send(err.into());
+                                error_sender.send(err.into()).unwrap();
                                 return ignore::WalkState::Quit;
                             }
                         }

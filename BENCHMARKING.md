@@ -1,10 +1,10 @@
 # Benchmarking
 
-I'm benchmarking on two repos (see `script/bench.sh`):
+I'm benchmarking on two repos (see `script/bench.sh` for the one you can run yourself):
 
 | Target                                                                              | Time              |
 |-------------------------------------------------------------------------------------|-------------------|
-| (elm-spa-example)[https://github.com/rtfeldman/elm-spa-example] (224kb of Elm code) | 10.6 ms ± 0.6 ms  |
+| [elm-spa-example](https://github.com/rtfeldman/elm-spa-example) (224kb of Elm code) | 10.6 ms ± 0.6 ms  |
 | my main work repo (12mb of Elm code)                                                | 196.7 ms ± 5.4 ms |
 
 The standard to meet or exceed here is the tool this is replacing, which runs in `1.210 s ± 0.016 s` on the work repo.
@@ -14,6 +14,8 @@ We can probably do better by reducing allocations etc but a 6x speedup is good e
 I doubt there are many repos in the world as big as the one I'm working with, so I think it should be acceptably performant on smaller repos.
 
 ## Things I've tried
+
+In reverse chronological order:
 
 ### November 19: Cutting off matches early
 

@@ -98,14 +98,19 @@ Finally, in our external style guide we version modules like `Nri.Ui.Doodad.V1`â
 ### Why is this written in Rust instead of `X`?
 
 I wanted to learn Rust, and I started off by using `tree-sitter`, which has excellent Rust bindings.
-That version of the tool turned out to be pretty slow, so I dropped it in favor of regular expressions.
+That version of the tool turned out to be pretty slow, so I dropped `tree-sitter` in favor of regular expressions.
 Now it's pretty quick!
 
-### Is this fast?
+### How quick is it?
 
-It's pretty fast.
-It could probably go faster, but I think we've reached the point of diminishing returns here.
-See [BENCHMARKING.md](BENCHMARKING.md).
+It runs on elm-spa-example (224kb of Elm code) in about 10ms, and my main work repo (12mb of Elm code) in about 200ms.
+Most projects fall somewhere in between there, so I'm confident in saying that you probably won't get bored while waiting for this to run, and it won't add an unmanageable amount of overhead to your CI runs.
+
+That said, wec could probably go faster; in particular, the tool does a lot more allocations than it strictly needs to.
+But... 10â€”200ms is well within the acceptable times for a development tool, so I think it's about fast enough.
+See [BENCHMARKING.md](BENCHMARKING.md) for more and how it got to this speed.
+
+If you're an experienced Rust programmer and know about easy further wins here, please [get in touch](mailto:brian@brianthicks.com).
 
 ## Contributing
 

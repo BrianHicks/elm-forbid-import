@@ -16,7 +16,7 @@ impl ImportFinder {
         ImportFinder { roots }
     }
 
-    pub fn find(&self) -> Result<BTreeMap<String, BTreeSet<FoundImport>>> {
+    fn builder(&self) -> Result<ignore::WalkBuilder> {
         let mut roots = self.roots.iter();
 
         let first_root = match roots.next() {
@@ -38,12 +38,16 @@ impl ImportFinder {
             .context("could not build extensions to scan for")?;
         builder.types(types);
 
+        Ok(builder)
+    }
+
+    pub fn find(&self) -> Result<BTreeMap<String, BTreeSet<FoundImport>>> {
         let mut out: BTreeMap<String, BTreeSet<FoundImport>> = BTreeMap::new();
 
         let (parent_results_sender, results_receiver) = channel::unbounded();
         let (parent_error_sender, error_receiver) = channel::unbounded();
 
-        builder.build_parallel().run(|| {
+        self.builder()?.build_parallel().run(|| {
             let results_sender = parent_results_sender.clone();
             let error_sender = parent_error_sender.clone();
 

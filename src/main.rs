@@ -50,13 +50,13 @@ enum Mode {
 
     /// Add a project root (a directory containing `elm.json`) to check for imports.
     AddRoot {
-        // The path of the directory, as relative to the working directory.
+        // The path to the project, as relative to the working directory.
         path: PathBuf,
     },
 
-    /// Remove a root from checking.
+    /// Remove a project root from checking.
     RemoveRoot {
-        // The path of the root, as relative to the working directory.
+        // The path to the project, as relative to the working directory.
         path: PathBuf,
     },
 
@@ -130,7 +130,9 @@ fn run(opts: Options) -> Result<i32> {
         }
 
         Mode::AddRoot { path } => {
-            store.add_root(path).context("could not add the new root")?;
+            store
+                .add_root(path)
+                .context("could not add the new project root")?;
             store.write().context("could not update the config file")?;
 
             Ok(0)
@@ -139,7 +141,7 @@ fn run(opts: Options) -> Result<i32> {
         Mode::RemoveRoot { path } => {
             store
                 .remove_root(path)
-                .context("could not remove the root")?;
+                .context("could not remove the project root")?;
             store.write().context("could not update the config file")?;
 
             Ok(0)

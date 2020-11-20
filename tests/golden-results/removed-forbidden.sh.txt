@@ -1,4 +1,0 @@
-vendor/elm-spa-example/src/Article/Body.elm: removed forbidden import Html! (Run me with `update` to fix this.)
-
-It looks like you removed some forbidden imports. Good job! To update the config
-and remove this error, just run me with the `update` command!

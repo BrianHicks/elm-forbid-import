@@ -70,19 +70,6 @@ If that's not enough, please [let me know](mailto:brian@brianthicks.com).
 
 Use the `add-root` command.
 
-### How is this better than `grep`?
-
-If you're OK with removing a dependency thoroughly and never allowing any wiggle room for it to come back, a simple shell script might be more appropriate for your use. Here you go:
-
-```
-if grep -re 'import Regex' -e 'import OtherThing' src; then
-  echo 'Forbidden imports found oh noooooo'
-  exit 1
-fi
-```
-
-But if you're working on a large project where you're managing or trying to reduce dependencies, this tool will allow you to do so without making other folks on your team pull their hair out when CI fails for the bajillionth time.
-
 ### How common is forbidding an import, really?
 
 We do it pretty frequently at NoRedInk.

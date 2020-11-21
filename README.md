@@ -66,8 +66,9 @@ That's this tool's default output, but if your editor doesn't like the additiona
 If your editor requires another form of output, use `--format json` to get structured output which can be reformatted however you like.
 If that's not enough, please [let me know](mailto:brian@brianthicks.com).
 
-### How can I check multiple source roots with this tool?
+### Can I check multiple source roots with this tool?
 
+Yep!
 Use the `add-root` command.
 
 ### How common is forbidding an import, really?

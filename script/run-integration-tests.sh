@@ -26,6 +26,10 @@ run_test() {
 
   echo "===== $NAME"
   env ELM_FORBID_IMPORT_CONFIG="tmp/forbidden-imports.toml" bash -xeou pipefail "$TEST_FILE" > "$CURRENT"
+  if test "$?" != "0"; then
+    return 1
+  fi
+
   mv tmp/forbidden-imports.toml "$CURRENT_CONFIG"
 
   if ! test -e "$GOLDEN"; then

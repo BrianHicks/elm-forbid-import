@@ -9,7 +9,7 @@ set -e
 
 elm-forbid-import update
 
-FILE="$(jq -r '.file' <<< "$MATCH")"
+FILE="$(jq -r '.path' <<< "$MATCH")"
 cp "$FILE" "$FILE.bak"
 sed -i "$(jq '.position.row' <<< "$MATCH")d" "$FILE"
 

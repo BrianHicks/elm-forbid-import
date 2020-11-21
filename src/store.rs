@@ -192,6 +192,9 @@ impl Store {
             .absolute_config_parent_path()
             .context("could not get parent path to check for new usages")?;
 
+        let current_dir =
+            std::env::current_dir().context("could not get the current working directory")?;
+
         let mut out = Vec::new();
 
         for (import, existing) in self.forbidden.iter() {
@@ -210,8 +213,18 @@ impl Store {
                 }
 
                 for file in new_usages.difference(&existing.usages) {
+                    let nice_path = pathdiff::diff_paths(
+                        &self
+                            .absolute_from_config_path(file.to_path_buf())
+                            .with_context(|| {
+                                format!("could not get an absolute path to {}", file.display())
+                            })?,
+                        &current_dir,
+                    )
+                    .unwrap_or_else(|| file.to_owned());
+
                     out.push(CheckResult {
-                        path: file.to_path_buf(),
+                        path: nice_path,
                         position: to_positions.get(file).copied(),
                         import: import.to_string(),
                         error_location: ErrorLocation::InElmSource {
@@ -221,8 +234,18 @@ impl Store {
                 }
 
                 for file in existing.usages.difference(&new_usages) {
+                    let nice_path = pathdiff::diff_paths(
+                        &self
+                            .absolute_from_config_path(file.to_path_buf())
+                            .with_context(|| {
+                                format!("could not get an absolute path to {}", file.display())
+                            })?,
+                        &current_dir,
+                    )
+                    .unwrap_or_else(|| file.to_owned());
+
                     out.push(CheckResult {
-                        path: file.to_path_buf(),
+                        path: nice_path,
                         position: None,
                         import: import.to_string(),
                         error_location: ErrorLocation::InConfig,

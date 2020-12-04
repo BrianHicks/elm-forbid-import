@@ -1,4 +1,4 @@
-use anyhow::{Context, Result};
+use anyhow::{anyhow, Context, Result};
 use clap::Clap;
 use std::path::PathBuf;
 use std::process;
@@ -42,6 +42,13 @@ enum Mode {
         /// another approach? Give up and buy a farm?)
         #[clap(short, long)]
         hint: Option<String>,
+    },
+
+    /// Forbid a list of imports held in a CSV. The file should be a 2-column
+    /// CSV with "module" and "hint" fields and no headers.
+    ForbidFromCsv {
+        /// What file has the forbidden import list?
+        path: PathBuf,
     },
 
     /// Stop forbidding the use of a specific import.
@@ -124,6 +131,34 @@ fn run(opts: Options) -> Result<i32> {
             store.write().context("could not update the config file")?;
 
             Ok(0)
+        }
+
+        Mode::ForbidFromCsv { path } => {
+            let mut reader = csv::ReaderBuilder::new()
+                .flexible(true)
+                .has_headers(false)
+                .from_path(path)
+                .context("could not read the CSV of forbidden imports")?;
+
+            for record in reader.records() {
+                let mut record = record.context("could not read record")?;
+                record.trim();
+
+                let module = record
+                    .get(0)
+                    .and_then(|name| if !name.is_empty() { Some(name) } else { None })
+                    .map(|name| name.to_string())
+                    .ok_or(anyhow!(
+                        "I need a module name in the first column of the CSV at "
+                    ))?;
+                let hint = record.get(1).map(|name| name.to_string());
+
+                store.forbid(module, hint);
+            }
+
+            store.write().context("could not update the config file")?;
+
+            Ok(1)
         }
 
         Mode::Unforbid { name } => {

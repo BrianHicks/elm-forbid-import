@@ -158,7 +158,7 @@ fn run(opts: Options) -> Result<i32> {
 
             store.write().context("could not update the config file")?;
 
-            Ok(1)
+            Ok(0)
         }
 
         Mode::Unforbid { name } => {

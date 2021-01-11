@@ -2,6 +2,6 @@
 }:
 let
   naersk = pkgs.callPackage sources.naersk { };
-  gitignore = import sources.gitignore { };
+  gitignore = pkgs.callPackage sources.gitignore { };
 in naersk.buildPackage (gitignore.gitignoreSource ./.)
 

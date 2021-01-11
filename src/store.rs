@@ -114,15 +114,15 @@ impl Store {
     }
 
     fn absolute_from_config_path(&self, path: PathBuf) -> Result<PathBuf> {
-        self.absolute_config_parent_path()?
-            .join(&path)
-            .canonicalize()
-            .with_context(|| {
-                format!(
-                    "could not make an absolute path with the config file and {}",
-                    path.display()
-                )
-            })
+        let parent_path = self.absolute_config_parent_path()?;
+
+        parent_path.join(&path).canonicalize().with_context(|| {
+            format!(
+                "could not make an absolute path with the config file at {} and {}",
+                parent_path.display(),
+                path.display(),
+            )
+        })
     }
 
     pub fn add_root(&mut self, path: PathBuf) -> Result<()> {

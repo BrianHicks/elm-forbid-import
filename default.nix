@@ -3,5 +3,8 @@
 let
   naersk = pkgs.callPackage sources.naersk { };
   gitignore = pkgs.callPackage sources.gitignore { };
-in naersk.buildPackage (gitignore.gitignoreSource ./.)
+in naersk.buildPackage {
+  root = (gitignore.gitignoreSource ./.);
+  buildInputs = [ pkgs.libiconv ];
+}
 

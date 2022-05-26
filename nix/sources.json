@@ -17,10 +17,10 @@
         "homepage": "",
         "owner": "hercules-ci",
         "repo": "gitignore",
-        "rev": "c4662e662462e7bf3c2a968483478a665d00e717",
-        "sha256": "1npnx0h6bd0d7ql93ka7azhj40zgjp815fw2r6smg8ch9p7mzdlx",
+        "rev": "bff2832ec341cf30acb3a4d3e2e7f1f7b590116a",
+        "sha256": "0va0janxvmilm67nbl81gdbpppal4aprxzb25gp9pqvf76ahxsci",
         "type": "tarball",
-        "url": "https://github.com/hercules-ci/gitignore/archive/c4662e662462e7bf3c2a968483478a665d00e717.tar.gz",
+        "url": "https://github.com/hercules-ci/gitignore/archive/bff2832ec341cf30acb3a4d3e2e7f1f7b590116a.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "naersk": {
@@ -29,10 +29,10 @@
         "homepage": "",
         "owner": "nmattia",
         "repo": "naersk",
-        "rev": "d7bfbad3304fd768c0f93a4c3b50976275e6d4be",
-        "sha256": "1pvp7v648fm434mvii9ckpg154pchk2jnn049aw96qdq5zkna0fz",
+        "rev": "69daaceebe12c070cd5ae69ba38f277bbf033695",
+        "sha256": "1ip749p9g0prmrwiz0845x9n4j9b39sdrzpi60s4yygy6qgc7262",
         "type": "tarball",
-        "url": "https://github.com/nmattia/naersk/archive/d7bfbad3304fd768c0f93a4c3b50976275e6d4be.tar.gz",
+        "url": "https://github.com/nmattia/naersk/archive/69daaceebe12c070cd5ae69ba38f277bbf033695.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "niv": {
@@ -41,22 +41,22 @@
         "homepage": "https://github.com/nmattia/niv",
         "owner": "nmattia",
         "repo": "niv",
-        "rev": "18b7314c13a6d0e82113a15c14e7a5f54286327d",
-        "sha256": "0b2xb99nn7ddysvgzncwa4vglv0j6c0l4bgxz9hl4i3gmrlq3r59",
+        "rev": "82e5cd1ad3c387863f0545d7591512e76ab0fc41",
+        "sha256": "090l219mzc0gi33i3psgph6s2pwsc8qy4lyrqjdj4qzkvmaj65a7",
         "type": "tarball",
-        "url": "https://github.com/nmattia/niv/archive/18b7314c13a6d0e82113a15c14e7a5f54286327d.tar.gz",
+        "url": "https://github.com/nmattia/niv/archive/82e5cd1ad3c387863f0545d7591512e76ab0fc41.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "nixpkgs": {
-        "branch": "release-20.03",
+        "branch": "release-21.11",
         "description": "Nix Packages collection",
         "homepage": "",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "929768261a3ede470eafb58d5b819e1a848aa8bf",
-        "sha256": "0zi54vbfi6i6i5hdd4v0l144y1c8rg6hq6818jjbbcnm182ygyfa",
+        "rev": "9bc0e974545d5bc4c24e1ed047be0dc4e30e494b",
+        "sha256": "09srdp53k3jc6qj66g85618xg4x2y705ljfn486g437icdp7mln5",
         "type": "tarball",
-        "url": "https://github.com/NixOS/nixpkgs/archive/929768261a3ede470eafb58d5b819e1a848aa8bf.tar.gz",
+        "url": "https://github.com/NixOS/nixpkgs/archive/9bc0e974545d5bc4c24e1ed047be0dc4e30e494b.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     }
 }

@@ -16,7 +16,6 @@ stdenv.mkDerivation {
     # Rust
     cargo
     cargo-lichking
-    cargo-watch
     rustPackages.clippy
     rustPackages.rustfmt
     rustc

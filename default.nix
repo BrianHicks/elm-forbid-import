@@ -1,10 +1,3 @@
-{ sources ? import ./nix/sources.nix { }, pkgs ? import sources.nixpkgs { }, ...
-}:
-let
-  naersk = pkgs.callPackage sources.naersk { };
-  gitignore = pkgs.callPackage sources.gitignore { };
-in naersk.buildPackage {
-  root = (gitignore.gitignoreSource ./.);
-  buildInputs = [ pkgs.libiconv ];
-}
-
+(import (fetchTarball https://github.com/edolstra/flake-compat/archive/master.tar.gz) {
+  src = builtins.fetchGit ./.;
+}).defaultNix

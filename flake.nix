@@ -10,11 +10,14 @@
       let
         pkgs = import inputs.nixpkgs { inherit system; };
 
-        naersk = pkgs.callPackage inputs.naersk {};
-      in {
+        naersk = pkgs.callPackage inputs.naersk { };
+      in
+      {
         defaultPackage = naersk.buildPackage {
           src = ./.;
         };
+
+        formatter = pkgs.nixpkgs-fmt;
 
         devShell = pkgs.mkShell {
           nativeBuildInputs = with pkgs; [
